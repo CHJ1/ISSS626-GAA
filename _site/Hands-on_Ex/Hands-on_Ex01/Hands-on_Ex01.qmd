@@ -99,13 +99,13 @@ listings_sf <- st_as_sf(listings,
                        crs=4326) %>%
   st_transform(crs = 3414)
 ```
-  
+
 ```{r}
 glimpse(listings_sf)
 ```
-  
+
 Geoprocessing with sf package
-  
+
 Use case 1: Land acquisition analysis
 
 ```{r}
@@ -175,7 +175,7 @@ ggplot(data=mpsz,
       x = "Pre-school density (per km sq)",
       y = "Frequency")
 ```
-  
+
 ```{r}
 ggplot(data=mpsz, 
        aes(y = `PreSch Count`, 
