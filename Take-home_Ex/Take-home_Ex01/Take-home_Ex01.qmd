@@ -302,3 +302,72 @@ biz_55101_sf_firsthalf2025SG_ppp = biz_55101_sf_firsthalf2025_ppp[sg_owin]
 biz_56130_sf_firsthalf2025_ppp <- as.ppp(biz_56130_sf_firsthalf2025)
 biz_56130_sf_firsthalf2025SG_ppp = biz_56130_sf_firsthalf2025_ppp[sg_owin]
 ```
+
+```{r}
+clarkevans.test(biz_56111_sf_firsthalf2025SG_ppp,
+                correction="none",
+                clipregion="sg_owin",
+                alternative=c("clustered"),
+                method="MonteCarlo",
+                nsim=99)
+```
+
+```{r}
+clarkevans.test(biz_55101_sf_firsthalf2025SG_ppp,
+                correction="none",
+                clipregion="sg_owin",
+                alternative=c("clustered"),
+                method="MonteCarlo",
+                nsim=99)
+```
+
+```{r}
+clarkevans.test(biz_56130_sf_firsthalf2025SG_ppp,
+                correction="none",
+                clipregion="sg_owin",
+                alternative=c("clustered"),
+                method="MonteCarlo",
+                nsim=99)
+```
+
+```{r}
+biz_56111_sf_firsthalf2025SG_ppp_km <- rescale.ppp(
+  biz_56111_sf_firsthalf2025SG_ppp, 1000, "km")
+  
+kde_biz_56111_sf_firsthalf2025SG_ppp_km <- density(biz_56111_sf_firsthalf2025SG_ppp_km,
+                              sigma=bw.diggle,
+                              edge=TRUE,
+                              kernel="gaussian")
+  
+plot(kde_biz_56111_sf_firsthalf2025SG_ppp_km)
+```
+  
+```{r}
+biz_55101_sf_firsthalf2025SG_ppp_km <- rescale.ppp(
+  biz_55101_sf_firsthalf2025SG_ppp, 1000, "km")
+  
+kde_biz_55101_sf_firsthalf2025SG_ppp_km <- density(biz_55101_sf_firsthalf2025SG_ppp_km,
+                              sigma=bw.diggle,
+                              edge=TRUE,
+                              kernel="gaussian")
+  
+plot(kde_biz_55101_sf_firsthalf2025SG_ppp_km)
+```
+
+```{r}
+biz_56130_sf_firsthalf2025SG_ppp_km <- rescale.ppp(
+  biz_56130_sf_firsthalf2025SG_ppp, 1000, "km")
+  
+kde_biz_56130_sf_firsthalf2025SG_ppp_km <- density(biz_56130_sf_firsthalf2025SG_ppp_km,
+                              sigma=bw.diggle,
+                              edge=TRUE,
+                              kernel="gaussian")
+  
+plot(kde_biz_56130_sf_firsthalf2025SG_ppp_km)
+```
+
+```{r}
+set.seed(1234)
+```
+  
+  
