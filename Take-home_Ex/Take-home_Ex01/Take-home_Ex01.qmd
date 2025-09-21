@@ -153,14 +153,89 @@ plot(st_geometry(mpsz))
 plot(st_geometry(biz_56130_sf_firsthalf2025), add = TRUE)
 ```
 
+```{r}
+mpsz$`biz_56111_sf_firsthalf2025`<- lengths(st_intersects(mpsz, biz_56111_sf_firsthalf2025))
+summary(mpsz$`biz_56111_sf_firsthalf2025`)
 
+top_n(mpsz, 1, `biz_56111_sf_firsthalf2025`)
+```
 
+```{r}
+mpsz$Area <- mpsz %>%
+  st_area()
+```
 
+```{r}
+mpsz <- mpsz %>%
+  mutate(`biz_56111_sf_firsthalf2025 Density` = `biz_56111_sf_firsthalf2025`/Area * 1000000)
 
+hist(mpsz$`biz_56111_sf_firsthalf2025 Density`)
+```
 
+```{r}
+ggplot(data=mpsz, 
+       aes(y = `biz_56111_sf_firsthalf2025`, 
+           x= as.numeric(`biz_56111_sf_firsthalf2025 Density`)))+
+  geom_point(color="black", 
+             fill="light blue") +
+  xlim(0, 40) +
+  ylim(0, 40) +
+  labs(title = "",
+      x = "biz_56111_sf_firsthalf2025 density (per km sq)",
+      y = "biz_56111_sf_firsthalf2025 count")
+```
 
+```{r}
+mpsz$`biz_55101_sf_firsthalf2025`<- lengths(st_intersects(mpsz, biz_55101_sf_firsthalf2025))
+summary(mpsz$`biz_55101_sf_firsthalf2025`)
 
+top_n(mpsz, 1, `biz_55101_sf_firsthalf2025`)
+```
 
+```{r}
+mpsz <- mpsz %>%
+  mutate(`biz_55101_sf_firsthalf2025 Density` = `biz_55101_sf_firsthalf2025`/Area * 1000000)
 
+hist(mpsz$`biz_55101_sf_firsthalf2025 Density`)
+```
 
+```{r}
+ggplot(data=mpsz, 
+       aes(y = `biz_55101_sf_firsthalf2025`, 
+           x= as.numeric(`biz_55101_sf_firsthalf2025 Density`)))+
+  geom_point(color="black", 
+             fill="light blue") +
+  xlim(0, 40) +
+  ylim(0, 40) +
+  labs(title = "",
+      x = "biz_55101_sf_firsthalf2025 density (per km sq)",
+      y = "biz_55101_sf_firsthalf2025 count")
+```
+
+```{r}
+mpsz$`biz_56130_sf_firsthalf2025`<- lengths(st_intersects(mpsz, biz_56130_sf_firsthalf2025))
+summary(mpsz$`biz_56130_sf_firsthalf2025`)
+
+top_n(mpsz, 1, `biz_56130_sf_firsthalf2025`)
+```
+
+```{r}
+mpsz <- mpsz %>%
+  mutate(`biz_56130_sf_firsthalf2025 Density` = `biz_56130_sf_firsthalf2025`/Area * 1000000)
+
+hist(mpsz$`biz_56130_sf_firsthalf2025 Density`)
+```
+
+```{r}
+ggplot(data=mpsz, 
+       aes(y = `biz_56130_sf_firsthalf2025`, 
+           x= as.numeric(`biz_56130_sf_firsthalf2025 Density`)))+
+  geom_point(color="black", 
+             fill="light blue") +
+  xlim(0, 40) +
+  ylim(0, 40) +
+  labs(title = "",
+      x = "biz_56130_sf_firsthalf2025 density (per km sq)",
+      y = "biz_56130_sf_firsthalf2025 count")
+```
 
