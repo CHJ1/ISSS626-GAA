@@ -25,6 +25,8 @@ acra_data <- file_list %>%
 ```
 
 ```{r}
+#|eval: false
+#|echo: false
 write_rds(acra_data,
           "data/acra_data.rds")
 ```
@@ -107,3 +109,79 @@ tmap_mode('view')
 tm_shape(biz_56111_55101_56130_sf)+
   tm_dots()
 ```
+
+```{r}
+biz_56111_55101_56130_sf_firsthalf2025 <- biz_56111_55101_56130_sf %>%
+  filter(YEAR == 2025, MONTH_NUM %in% 1:6)
+```
+
+```{r}
+split_list <- split(biz_56111_55101_56130_sf_firsthalf2025, 
+                    biz_56111_55101_56130_sf_firsthalf2025$primary_ssic_code)
+
+biz_56111_sf_firsthalf2025 <- split_list[["56111"]]
+biz_55101_sf_firsthalf2025 <- split_list[["55101"]]
+biz_56130_sf_firsthalf2025 <- split_list[["56130"]]
+```
+
+```{r}
+biz_56111_sf_firsthalf2025 <- st_transform(biz_56111_sf_firsthalf2025, 
+                              crs = 3414)
+biz_55101_sf_firsthalf2025 <- st_transform(biz_55101_sf_firsthalf2025, 
+                              crs = 3414)
+biz_56130_sf_firsthalf2025 <- st_transform(biz_56130_sf_firsthalf2025, 
+                              crs = 3414)
+```
+
+```{r}
+mpsz = st_read(dsn = "data", 
+                  layer = "MP14_SUBZONE_WEB_PL")
+```
+
+```{r}
+plot(mpsz)
+```
+
+
+
+```{r}
+st_crs(mpsz)
+mpsz <- st_set_crs(mpsz, 3414)
+```
+
+
+
+```{r}
+plot(st_geometry(mpsz))
+plot(st_geometry(biz_56111_sf_firsthalf2025), add = TRUE)
+```
+
+```{r}
+plot(mpsz["REGION_N"], col = sf.colors(n = length(unique(mpsz$REGION_N)), categorical = TRUE), border = "black")
+plot(st_geometry(biz_56111_sf_firsthalf2025), add = TRUE)
+```
+
+
+
+```{r}
+plot(st_geometry(mpsz))
+plot(st_geometry(biz_55101_sf_firsthalf2025), add = TRUE)
+```
+
+
+```{r}
+plot(st_geometry(mpsz))
+plot(st_geometry(biz_56130_sf_firsthalf2025), add = TRUE)
+```
+
+
+
+
+
+
+
+
+
+
+
+
