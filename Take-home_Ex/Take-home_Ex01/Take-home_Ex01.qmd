@@ -341,7 +341,7 @@ kde_biz_56111_sf_firsthalf2025SG_ppp_km <- density(biz_56111_sf_firsthalf2025SG_
   
 plot(kde_biz_56111_sf_firsthalf2025SG_ppp_km)
 ```
-  
+
 ```{r}
 biz_55101_sf_firsthalf2025SG_ppp_km <- rescale.ppp(
   biz_55101_sf_firsthalf2025SG_ppp, 1000, "km")
@@ -367,7 +367,73 @@ plot(kde_biz_56130_sf_firsthalf2025SG_ppp_km)
 ```
 
 ```{r}
+dc <- mpsz_cl %>%
+  filter(PLN_AREA_N == "DOWNTOWN CORE")
+```
+
+```{r}
+par(mfrow=c(2,2))
+plot(st_geometry(dc), main = "DOWNTOWN CORE")
+```
+
+```{r}
+dc_owin = as.owin(dc)
+```
+
+```{r}
+biz_56111_sf_firsthalf2025_ppp_dc = biz_56111_sf_firsthalf2025_ppp[dc_owin] 
+biz_55101_sf_firsthalf2025_ppp_dc = biz_55101_sf_firsthalf2025_ppp[dc_owin] 
+biz_56130_sf_firsthalf2025_ppp_dc = biz_56130_sf_firsthalf2025_ppp[dc_owin]
+```
+
+```{r}
+biz_56111_sf_firsthalf2025_ppp_dc.km = rescale.ppp(biz_56111_sf_firsthalf2025_ppp_dc, 1000, "km")
+biz_55101_sf_firsthalf2025_ppp_dc.km = rescale.ppp(biz_55101_sf_firsthalf2025_ppp_dc, 1000, "km")
+biz_56130_sf_firsthalf2025_ppp_dc.km = rescale.ppp(biz_56130_sf_firsthalf2025_ppp_dc, 1000, "km")
+```
+
+```{r}
+par(mfrow=c(2,2))
+plot(unmark(biz_56111_sf_firsthalf2025_ppp_dc.km), 
+  main="56111")
+plot(unmark(biz_55101_sf_firsthalf2025_ppp_dc.km), 
+  main="55101")
+plot(unmark(biz_56130_sf_firsthalf2025_ppp_dc.km), 
+  main="56130")
+```
+
+```{r}
 set.seed(1234)
 ```
-  
-  
+
+```{r}
+G_56111 = Gest(biz_56111_sf_firsthalf2025_ppp_dc, correction = "border")
+plot(G_56111, xlim=c(0,500))
+```
+
+```{r}
+G_55101 = Gest(biz_55101_sf_firsthalf2025_ppp_dc, correction = "border")
+plot(G_55101, xlim=c(0,500))
+```
+
+```{r}
+G_56130 = Gest(biz_56130_sf_firsthalf2025_ppp_dc, correction = "border")
+plot(G_56130, xlim=c(0,500))
+```
+
+```{r}
+G_56111.csr <- envelope(biz_56111_sf_firsthalf2025_ppp_dc, Gest, nsim = 999)
+G_55101.csr <- envelope(biz_55101_sf_firsthalf2025_ppp_dc, Gest, nsim = 999)
+G_56130.csr <- envelope(biz_56130_sf_firsthalf2025_ppp_dc, Gest, nsim = 999)
+```
+
+```{r}
+plot(G_56111.csr)
+plot(G_55101.csr)
+plot(G_56130.csr)
+```
+
+
+
+
+
