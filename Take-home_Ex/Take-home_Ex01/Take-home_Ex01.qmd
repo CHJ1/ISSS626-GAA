@@ -10,9 +10,15 @@ execute:
   freeze: true
 ---
 
+In the first part of this assignment, I will be explaining each step and code chunk used for future reproducibility purposes.
+
+Loads packages.
+
 ```{r}
 pacman::p_load(tidyverse, sf, tmap, httr, rvest, spatstat)
 ```
+
+Lists and imports all CSV files whose names start with "ACRA". It combines the contents of these matched files into a single data frame called acra_data.
 
 ```{r}
 folder_path <- "data"
@@ -24,12 +30,16 @@ acra_data <- file_list %>%
   map_dfr(read_csv)
 ```
 
+Saves the acra_data data frame as an RDS file for later use, but is set not to run (eval: false) or print output (echo: false) in the document. This preserves data for quick loading in future analyses.
+
 ```{r}
 #|eval: false
 #|echo: false
 write_rds(acra_data,
           "data/acra_data.rds")
 ```
+
+Filters the imported dataset to retain selected columns and only businesses with specific SSIC codes, standardizes the date and postal code formats, creates year and month variables, and restricts output to records registered in 2025.
 
 ```{r}
 biz_56111_55101_56130 <- acra_data %>%
@@ -47,6 +57,8 @@ biz_56111_55101_56130 <- acra_data %>%
     width = 6, side = "left", pad = "0")) %>%
            filter(YEAR == 2025)
 ```
+
+This code chunk performs postal code validation and enrichment by querying the Singapore OneMap API for each unique postal code in the filtered business dataset. It collects geospatial and address details for valid postal codes in the found data frame, while noting postal codes with no matches in not_found. This step enhances the dataset with location data for spatial analysis or mapping.
 
 ```{r}
 postcodes <- unique(biz_56111_55101_56130$postal_code)
@@ -77,10 +89,14 @@ for (pc in postcodes) {
 }    
 ```
 
+Reduces the dataset to the first 10 columns.
+
 ```{r}
 found <- found %>%
   select(1:10)
 ```
+
+Performs a left join to merge the business dataset biz_56111_55101_56130 with the postal code details stored in found, matching on the postal code columns from both datasets. This appends the geospatial and address information obtained from the OneMap API to each business record while preserving all businesses in the original dataset.
 
 ```{r}
 biz_56111_55101_56130 = biz_56111_55101_56130 %>%
@@ -88,9 +104,13 @@ biz_56111_55101_56130 = biz_56111_55101_56130 %>%
             by = c('postal_code' = 'POSTAL'))
 ```
 
+Saves biz_56111_55101_56130 into an RDS file.
+
 ```{r}
 write_rds(biz_56111_55101_56130, "data/biz_56111_55101_56130.rds")
 ```
+
+Converts the biz_56111_55101_56130 data frame into a spatial (sf) object using the X and Y columns as coordinates and assigns the coordinate reference system EPSG:3414 for accurate spatial representation within Singapore’s national grid system.
 
 ```{r}
 biz_56111_55101_56130_sf <- st_as_sf(biz_56111_55101_56130, 
@@ -98,11 +118,15 @@ biz_56111_55101_56130_sf <- st_as_sf(biz_56111_55101_56130,
                          crs=3414) 
 ```
 
+Creates a bar plot to visualize the count of businesses by month. It provides a quick summary of trends in business registrations.
+
 ```{r}
 ggplot(data = biz_56111_55101_56130,
        aes(x = MONTH_ABBR)) +
   geom_bar()
 ```
+
+This code chunk switches the tmap visualization mode to interactive "view" mode and plots the spatial business points from biz_56111_55101_56130_sf as dots on an interactive map. This allows panning, zooming, and exploring the geographic distribution of businesses visually.
 
 ```{r}
 tmap_mode('view')
@@ -110,10 +134,14 @@ tm_shape(biz_56111_55101_56130_sf)+
   tm_dots()
 ```
 
+Filters the business data to include only records from the first half of 2025.
+
 ```{r}
 biz_56111_55101_56130_sf_firsthalf2025 <- biz_56111_55101_56130_sf %>%
   filter(YEAR == 2025, MONTH_NUM %in% 1:6)
 ```
+
+Splits the filtered spatial business dataset into separate data frames by the primary_ssic_code.
 
 ```{r}
 split_list <- split(biz_56111_55101_56130_sf_firsthalf2025, 
@@ -124,19 +152,27 @@ biz_55101_sf_firsthalf2025 <- split_list[["55101"]]
 biz_56130_sf_firsthalf2025 <- split_list[["56130"]]
 ```
 
+This code chunk reads a spatial polygon layer named "MP14_SUBZONE_WEB_PL" into mpsz.
+
 ```{r}
 mpsz = st_read(dsn = "data", 
                   layer = "MP14_SUBZONE_WEB_PL")
 ```
 
+This code chunk produces basic plots of the spatial polygons stored in the mpsz sf object.
+
 ```{r}
 plot(mpsz)
 ```
+
+This code chunk first queries the current CRS of mpsz. Then it explicitly sets the CRS of mpsz to EPSG 3414, ensuring the spatial data uses the correct projection for subsequent spatial operations and alignment with other datasets in the same CRS.
 
 ```{r}
 st_crs(mpsz)
 mpsz <- st_set_crs(mpsz, 3414)
 ```
+
+Subsequent code chunks produce a layered plot where the base map of spatial polygons (mpsz) is drawn first, and the spatial points are overlaid on top, allowing visual examination of business locations within defined spatial boundaries.
 
 ```{r}
 plot(st_geometry(mpsz))
@@ -153,6 +189,8 @@ plot(st_geometry(mpsz))
 plot(st_geometry(biz_56130_sf_firsthalf2025), add = TRUE)
 ```
 
+This code chunk calculates the count of business points within each spatial polygon in mpsz by using the spatial intersection function st_intersects(). It stores this count in a new column. The following summary and top_n calls provide a quick view of the distribution of businesses per polygon and identify the polygon with the highest number of intersecting businesses.
+
 ```{r}
 mpsz$`biz_56111_sf_firsthalf2025`<- lengths(st_intersects(mpsz, biz_56111_sf_firsthalf2025))
 summary(mpsz$`biz_56111_sf_firsthalf2025`)
@@ -160,10 +198,14 @@ summary(mpsz$`biz_56111_sf_firsthalf2025`)
 top_n(mpsz, 1, `biz_56111_sf_firsthalf2025`)
 ```
 
+This code chunk calculates the area of each polygon feature in the mpsz spatial dataset using the st_area() function. It stores the resulting polygon areas in a new column called Area.
+
 ```{r}
 mpsz$Area <- mpsz %>%
   st_area()
 ```
+
+This code chunk calculates a new variable representing the business point density per square kilometer within each polygon by dividing the count by the polygon area and multiplying by 1,000,000 . It then produces a histogram to visualize the distribution of these density values across the polygons, providing insights into spatial concentration patterns of businesses.
 
 ```{r}
 mpsz <- mpsz %>%
@@ -171,6 +213,8 @@ mpsz <- mpsz %>%
 
 hist(mpsz$`biz_56111_sf_firsthalf2025 Density`)
 ```
+
+This code chunk creates a scatter plot, showing the relationship between the business counts and the business density per square km for each polygon in the mpsz dataset. The plot restricts axis limits to 0-40 for clearer visualization. This helps identify patterns or correlations between absolute counts and density values visually.
 
 ```{r}
 ggplot(data=mpsz, 
@@ -239,6 +283,8 @@ ggplot(data=mpsz,
       y = "biz_56130_sf_firsthalf2025 count")
 ```
 
+This R function extract_kml_field extracts the value of a specific field from HTML table content provided as a string. It uses the rvest package to parse the HTML, find table rows (<tr>), and locate the row by matching the table header (<th>) text to the desired field name. Then it extracts the corresponding data cell (<td>) text, returning NA if the field or table is absent. This function is useful for scraping specific tabular data fields embedded within HTML documents or API responses.
+
 ```{r}
 extract_kml_field <- function(html_text, field_name) {
   if (is.na(html_text) || html_text == "") return(NA_character_)
@@ -255,10 +301,14 @@ extract_kml_field <- function(html_text, field_name) {
 }
 ```
 
+This code chunk reads a KML file "MasterPlan2019SubzoneBoundaryNoSeaKML.kml" into an sf object named mpsz2. It removes any Z and M dimensions from the geometries using st_zm(drop = TRUE, what = "ZM") and then transforms the coordinate reference system to EPSG 3414 for consistent spatial operations within Singapore's coordinate system. This prepares the subzone boundary spatial data for mapping or spatial analysis.
+
 ```{r}
 mpsz2 <- st_read("data/MasterPlan2019SubzoneBoundaryNoSeaKML.kml") %>% 
   st_zm(drop = TRUE, what = "ZM") %>% st_transform(crs = 3414)
 ```
+
+This code chunk extracts specific attributes ("REGION_N", "PLN_AREA_N", "SUBZONE_N", "SUBZONE_C") from the HTML in the Description using the extract_kml_field function, creating new columns with those extracted values. Then it removes the original Name and Description columns and relocates the geometry column to the end for cleaning and better data presentation.
 
 ```{r}
 mpsz2 <- mpsz2 %>%
@@ -272,6 +322,8 @@ mpsz2 <- mpsz2 %>%
   relocate(geometry, .after = last_col())
 ```
 
+This code chunk filters the mpsz2 dataset to exclude subzones and planning areas related to offshore islands: "SOUTHERN GROUP" subzone, "WESTERN ISLANDS" and "NORTH-EASTERN ISLANDS" planning areas. 
+
 ```{r}
 mpsz_cl <- mpsz2 %>%
   filter(SUBZONE_N != "SOUTHERN GROUP",
@@ -279,14 +331,20 @@ mpsz_cl <- mpsz2 %>%
          PLN_AREA_N != "NORTH-EASTERN ISLANDS")
 ```
 
+This code chunk saves the filtered spatial dataset mpsz_cl to an RDS file. 
+
 ```{r}
 write_rds(mpsz_cl, 
           "data/mpsz_cl.rds")
 ```
 
+This code converts the mpsz_cl sf spatial polygon object into an observation window object of class owin. The as.owin function allows defining the study area boundary.
+
 ```{r}
 sg_owin <- as.owin(mpsz_cl)
 ```
+
+The subsequent code chunks convert the subset spatial points into a ppp. Because ppp requires an observation window, the points are subsequently restricted to the study area defined by sg_owin. This creates a spatstat-compatible point pattern restricted to Singapore.
 
 ```{r}
 biz_56111_sf_firsthalf2025_ppp <- as.ppp(biz_56111_sf_firsthalf2025)
@@ -302,6 +360,18 @@ biz_55101_sf_firsthalf2025SG_ppp = biz_55101_sf_firsthalf2025_ppp[sg_owin]
 biz_56130_sf_firsthalf2025_ppp <- as.ppp(biz_56130_sf_firsthalf2025)
 biz_56130_sf_firsthalf2025SG_ppp = biz_56130_sf_firsthalf2025_ppp[sg_owin]
 ```
+
+This code runs the Clark and Evans spatial point pattern test on the point pattern of the business subsets. The test evaluates whether the points exhibit clustering, complete spatial randomness, or regularity within the boundary window. The specified settings:
+
+correction="none" means no edge correction is applied.
+
+clipregion="sg_owin" restricts the analysis to the study area defined by Singapore’s subzone boundary window.
+
+alternative="clustered" tests for clustering (aggregation) as the alternative hypothesis.
+
+method="MonteCarlo" uses Monte Carlo simulation with nsim=99 simulations to derive the test statistic distribution for significance assessment.
+
+The result provides a Monte Carlo p-value testing whether the pattern is significantly clustered against the null hypothesis of randomness, helping interpret the spatial distribution pattern of the business locations within Singapore.
 
 ```{r}
 clarkevans.test(biz_56111_sf_firsthalf2025SG_ppp,
@@ -329,6 +399,18 @@ clarkevans.test(biz_56130_sf_firsthalf2025SG_ppp,
                 method="MonteCarlo",
                 nsim=99)
 ```
+
+This code rescales the spatial point pattern from meters to kilometers.
+
+Then, it computes a KDE density() with:
+
+sigma=bw.diggle which specifies the bandwidth estimated by Diggle's method (for smoothing).
+
+edge=TRUE to apply edge correction.
+
+kernel="gaussian" indicating a Gaussian kernel smoothing function.
+
+Finally, it plots the KDE heatmap showing spatial density of points representing the business locations. This KDE visualizes business intensity over space.
 
 ```{r}
 biz_56111_sf_firsthalf2025SG_ppp_km <- rescale.ppp(
@@ -366,19 +448,31 @@ kde_biz_56130_sf_firsthalf2025SG_ppp_km <- density(biz_56130_sf_firsthalf2025SG_
 plot(kde_biz_56130_sf_firsthalf2025SG_ppp_km)
 ```
 
+This code chunk filters the spatial polygons dataset mpsz_cl to select only the subzones within the "DOWNTOWN CORE" planning area of Singapore.
+
+The Downtown Core is the central business district of Singapore, containing high-density commercial and financial activity areas, including prominent neighborhoods like Raffles Place, Marina Bay, and City Hall. This filtering isolates the polygons relevant to spatial analysis focused on this key urban core region within Singapore's Master Plan 2019 boundaries.
+
 ```{r}
 dc <- mpsz_cl %>%
   filter(PLN_AREA_N == "DOWNTOWN CORE")
 ```
+
+mfrow=c(2,2) sets the plotting layout to a 2 by 2 grid. The subsequent plot() command for st_geometry(dc) will plot the polygons for the Downtown Core subzones into the first slot of this grid, with the title "DOWNTOWN CORE".
 
 ```{r}
 par(mfrow=c(2,2))
 plot(st_geometry(dc), main = "DOWNTOWN CORE")
 ```
 
+This code converts the "DOWNTOWN CORE" polygons sf object dc into owin. This conversion is needed to define the spatial study area boundary for spatstat analyses focused on just the Downtown Core region.
+
 ```{r}
 dc_owin = as.owin(dc)
 ```
+
+The code biz_XXXXX_sf_firsthalf2025_ppp[dc_owin] subsets the spatial point pattern object biz_XXXXX_sf_firsthalf2025_ppp to only include points that fall within the Downtown Core boundary dc_owin.
+
+This spatial cropping restricts the analysis to the Downtown Core region, extracting only the business points located inside this key central area.
 
 ```{r}
 biz_56111_sf_firsthalf2025_ppp_dc = biz_56111_sf_firsthalf2025_ppp[dc_owin] 
@@ -386,11 +480,17 @@ biz_55101_sf_firsthalf2025_ppp_dc = biz_55101_sf_firsthalf2025_ppp[dc_owin]
 biz_56130_sf_firsthalf2025_ppp_dc = biz_56130_sf_firsthalf2025_ppp[dc_owin]
 ```
 
+This code rescales the spatial point pattern objects for the business categories from meters to kilometers.
+
 ```{r}
 biz_56111_sf_firsthalf2025_ppp_dc.km = rescale.ppp(biz_56111_sf_firsthalf2025_ppp_dc, 1000, "km")
 biz_55101_sf_firsthalf2025_ppp_dc.km = rescale.ppp(biz_55101_sf_firsthalf2025_ppp_dc, 1000, "km")
 biz_56130_sf_firsthalf2025_ppp_dc.km = rescale.ppp(biz_56130_sf_firsthalf2025_ppp_dc, 1000, "km")
 ```
+
+This code sets the plotting layout to a 2 by 2 grid so that multiple plots can be displayed together. Then it plots three unmarked spatial point patterns for the Downtown Core business categories.
+
+Each plot will show the spatial distribution of the respective business points within the Downtown Core boundary.
 
 ```{r}
 par(mfrow=c(2,2))
@@ -402,9 +502,19 @@ plot(unmark(biz_56130_sf_firsthalf2025_ppp_dc.km),
   main="56130")
 ```
 
+The set.seed(1234) sets the seed of the random number generator to ensure reproducibility of any subsequent random operations. By setting a fixed seed value, random processes such as simulation, sampling, or Monte Carlo methods produce the same results every time the code is run.
+
 ```{r}
 set.seed(1234)
 ```
+
+This code performs an analysis using the G-function (nearest neighbor distance distribution function) on the spatial point pattern object representing business points in the Downtown Core.
+
+Gest() computes the empirical G-function with the edge correction method "border" to compensate for boundary effects in the spatial window.
+
+plot() then visualizes the G-function curve with the x-axis limited to 0-500 meters, showing the cumulative distribution of nearest neighbor distances among points.
+
+The G-function measures the distribution of distances from each point to its closest neighbor, useful for detecting clustering or regularity. The observed curve can be compared to those of theoretical patterns for inference on point pattern structure within the Downtown Core.
 
 ```{r}
 G_56111 = Gest(biz_56111_sf_firsthalf2025_ppp_dc, correction = "border")
@@ -421,11 +531,35 @@ G_56130 = Gest(biz_56130_sf_firsthalf2025_ppp_dc, correction = "border")
 plot(G_56130, xlim=c(0,500))
 ```
 
+These commands generate Monte Carlo simulation envelopes for the G-function for the three Downtown Core business point patterns:
+
+envelope() runs 999 simulations of a CSR (completely spatially random) point pattern within the observation window.
+
+For each simulation, the G-function is computed.
+
+The function then constructs upper and lower envelopes of these simulated G-functions.
+
+The observed G-function from the actual data is compared to these envelopes to assess significant departures from CSR (such as clustering or regularity).
+
+This approach provides a graphical Monte Carlo test of spatial randomness by showing the range of expected G-functions under CSR and highlighting where the observed pattern deviates beyond chance.
+
 ```{r}
 G_56111.csr <- envelope(biz_56111_sf_firsthalf2025_ppp_dc, Gest, nsim = 999)
 G_55101.csr <- envelope(biz_55101_sf_firsthalf2025_ppp_dc, Gest, nsim = 999)
 G_56130.csr <- envelope(biz_56130_sf_firsthalf2025_ppp_dc, Gest, nsim = 999)
 ```
+
+These commands plot the Monte Carlo simulation envelopes previously computed for the G-function of the three Downtown Core business point patterns.
+
+The plot shows the observed G-function (black curve),
+
+The grey shaded region represents the simulation envelopes derived from CSR simulations,
+
+And a red dashed line usually shows the theoretical G-function under CSR.
+
+If the observed curve lies outside the grey envelope at certain distances, it indicates significant departure from spatial randomness (e.g., clustering or inhibition) at those scales.
+
+Plotting these envelopes helps visually assess how the spatial point pattern compares to a null random model, supporting inference on spatial arrangement and interactions of these business points in the Downtown Core region.
 
 ```{r}
 plot(G_56111.csr)
