@@ -15,7 +15,7 @@ In the first part of this assignment, I will be explaining each step and code ch
 Loads packages.
 
 ```{r}
-pacman::p_load(tidyverse, sf, tmap, httr, rvest, spatstat)
+pacman::p_load(tidyverse, sf, tmap, httr, rvest, spatstat, imager)
 ```
 
 Lists and imports all CSV files whose names start with "ACRA". It combines the contents of these matched files into a single data frame called acra_data.
@@ -568,6 +568,52 @@ plot(G_56130.csr)
 ```
 
 
+kde_56111 <- load.image("images/kde_56111.png")
+plot(kde_56111)
 
+This kernel density estimate (KDE) heat map shows the spatial concentration of business entities classified under code 56111 in Singapore for the first half of 2025. The colors indicate density, with dark blue showing low concentrations and yellow-purple areas showing higher intensity. Most of Singapore shows sparse distributions, but a few hotspots emerge where business activity is significantly clustered. The highest density area is in the Central Region around the Downtown Core and Orchard districts, which appear in bright yellow shades, reflecting the strongest clustering of these businesses.
 
+kde_55101 <- load.image("images/kde_55101.png")
+plot(kde_55101)
+
+This KDE heat map visualizes the spatial density of business entities classified under code 55101 in Singapore during the first half of 2025. Areas in dark blue indicate low business concentrations, while warmer yellow and pink tones represent higher densities. Most of the island shows very scattered distributions; however, several noticeable hotspots occur in the south-central part of Singapore. The highest density is observed in the Downtown Core, particularly near Orchard and Marina Bay, shown in bright yellow. This suggests these central districts remain the main clustering points for this business type, reflecting their commercial significance.
+
+kde_56130 <- load.image("images/kde_56130.png")
+plot(kde_56130)
+
+This kernel density estimate heat map shows where business entities of code 56130 are most concentrated in Singapore for the first half of 2025. Most of the map is dark blue, indicating very low densities overall. There are only a few locations with moderate clustering, shown as small yellow or magenta hotspots. The area with the highest density is in the Downtown Core and its nearby central districts, which display distinct yellow marks. This implies that, for this business type, Singapore’s central business area remains the main location for clustering.
+
+G_56111 <- load.image("images/G_56111.png")
+plot(G_56111)
+
+This G function plot evaluates the 2nd order spatial point pattern for 56111 business entities. The solid black line shows the observed nearest neighbor distribution, while the dashed red line represents the theoretical Poisson (random) expectation. The observed curve lies consistently above the Poisson curve at shorter distances, indicating stronger clustering: many points have a neighbor closer than would occur by chance. As radius 
+r
+r increases, curves converge, showing randomness at larger scales. This pattern suggests these businesses are spatially aggregated rather than uniformly or randomly distributed across Singapore.
+
+G_55101 <- load.image("images/G_55101.png")
+plot(G_55101)
+
+This G function plot investigates the 2nd order spatial point pattern for 55101 business entities. The solid black line (observed) sharply deviates above the red dashed line (Poisson expectation) at lower radii, before plateauing at 1. This suggests strong clustering of entities: many businesses have a neighbor much closer than expected under spatial randomness. The step-like shape indicates multiple locations with tightly packed entities and abrupt gaps. Overall, 55101 businesses are not randomly distributed—they are aggregated into discrete clusters within Singapore.
+
+G_56130 <- load.image("images/G_56130.png")
+plot(G_56130)
+
+This G function analysis for 56130 business entities shows the observed curve (solid black) very closely matches the theoretical Poisson expectation (dashed red) across all distances. Both curves rise slowly, and the observed curve never sharply exceeds the random model. This indicates no significant clustering: the spatial pattern of these entities is essentially random, with little evidence of aggregation or tight groupings. The 56130 businesses are more evenly dispersed throughout Singapore.
+
+G_56111.csr <- load.image("images/G_56111.csr.png")
+plot(G_56111.csr)
+
+This G function plot compares the observed spatial point pattern for 56111 entities (solid black line) to the theoretical random (CSR, dashed red) distribution, with simulation envelopes (gray area) indicating the expected range under randomness. The observed line is consistently above both the theoretical curve and the envelope, indicating significant clustering: many entities are closer together than expected by chance. Since the observed values lie above the envelope throughout the range, this finding is statistically significant and suggests non-random spatial aggregation.
+
+G_55101.csr <- load.image("images/G_55101.csr.png")
+plot(G_55101.csr)
+
+This G function plot for 55101 entities compares the observed nearest-neighbor distribution (solid black line) with the theoretical random pattern (dashed red) and includes confidence envelopes (gray area). The observed line rises steeply and reaches higher values much earlier than the theoretical curve, and it remains well above the simulation envelope across nearly the full range of 
+r
+r. This pattern demonstrates statistically significant clustering: these businesses are found much closer together than expected under complete spatial randomness, and the clustering effect is strong and highly unlikely to be due to chance.
+
+G_56130.csr <- load.image("images/G_56130.csr.png")
+plot(G_56130.csr)
+
+This G function plot for 56130 entities shows the observed nearest-neighbor distribution (solid line) compared with the theoretical random curve (dashed red), with simulation envelopes (grey area). The observed curve remains essentially flat and close to zero, sitting entirely below the simulation envelope, while the theoretical curve rises smoothly. This pattern indicates significant inhibition or regularity: these entities are spaced farther apart than expected under complete spatial randomness, showing spatial repulsion rather than clustering. The spatial distribution is more uniform, with entities avoiding close proximity to one another.
 
