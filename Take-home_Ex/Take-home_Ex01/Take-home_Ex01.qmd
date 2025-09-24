@@ -639,9 +639,7 @@ G_55101.csr <- load.image("images/G_55101.csr.png")
 plot(G_55101.csr)
 ```
 
-This G function plot for 55101 entities compares the observed nearest-neighbor distribution (solid black line) with the theoretical random pattern (dashed red) and includes confidence envelopes (gray area). The observed line rises steeply and reaches higher values much earlier than the theoretical curve, and it remains well above the simulation envelope across nearly the full range of 
-r
-r. This pattern demonstrates statistically significant clustering: these businesses are found much closer together than expected under complete spatial randomness, and the clustering effect is strong and highly unlikely to be due to chance.
+This G function plot for 55101 entities compares the observed nearest-neighbor distribution (solid black line) with the theoretical random pattern (dashed red) and includes confidence envelopes (gray area). The observed line rises steeply and reaches higher values much earlier than the theoretical curve, and it remains well above the simulation envelope across nearly the full range of r. This pattern demonstrates statistically significant clustering: these businesses are found much closer together than expected under complete spatial randomness, and the clustering effect is strong and highly unlikely to be due to chance.
 
 ```{r}
 G_56130.csr <- load.image("images/G_56130.csr.png")
