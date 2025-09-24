@@ -648,3 +648,55 @@ plot(G_56130.csr)
 
 This G function plot for 56130 entities shows the observed nearest-neighbor distribution (solid line) compared with the theoretical random curve (dashed red), with simulation envelopes (grey area). The observed curve remains essentially flat and close to zero, sitting entirely below the simulation envelope, while the theoretical curve rises smoothly. This pattern indicates significant inhibition or regularity: these entities are spaced farther apart than expected under complete spatial randomness, showing spatial repulsion rather than clustering. The spatial distribution is more uniform, with entities avoiding close proximity to one another.
 
+With reference to the analysis results above, I will discuss how these findings can be used to support urban land use planning and management.
+
+1. Guiding Zoning and Development Intensity
+
+The highly clustered distribution of restaurants and hotels, evidenced by both KDE hotspots and strong, statistically significant G function clustering, suggests a clear market preference and urban logic for intensifying commercial zoning in key areas like the Downtown Core. Planners can prioritize these corridors for future growth by:
+
+-Allowing for higher-density mixed-use developments.
+-Streamlining licensing and infrastructure upgrades in priority clusters.
+-Preserving commercial vibrancy while also managing issues arising from high business turnover, such as vacancy spikes and rent volatility.
+
+2. Supporting Economic and Tourism Strategies
+
+With hotels and restaurants clustering in areas of heavy footfall and tourism, urban managers can reinforce economic strategy by:
+
+-Enhancing transport connectivity and streetscape quality in these zones.
+-Designing pedestrian-friendly precincts and public spaces that support spill-over activity from these high-density enterprises.
+-Coordinating marketing or events to stimulate further clustering in adjacent underdeveloped nodes, thereby spreading economic benefits.
+
+3. Addressing Business Turnover and Urban Resilience
+
+Findings also indicate possible high turnover or “churn” in the core. Urban managers should:
+
+-Monitor vacant unit data and landlord practices to avoid excessive commercial displacement.
+-Foster resilience by supporting diverse tenant mixes and smaller, independent operators.
+-Adapt planning regulations to encourage adaptive reuse of spaces and lower entry barriers for new businesses, addressing cycles of restaurant openings and closures as highlighted by 56111 clustering.
+
+4. Balancing Land Use and Mitigating Conflict
+
+In contrast, pubs (56130) display spatial repulsion and a more uniform, dispersed distribution. This suggests regulatory or community-driven limits on clustering—possibly to minimize nightlife-related disturbances or maintain neighborhood amenity. Planners should:
+
+-Continue to enforce sensitive location controls for nightlife establishments.
+-Use these spatial insights to refine buffer zones and mediate conflicts between nightlife, residential, and other land uses.
+-Target support for nightlife in appropriate “entertainment cluster” precincts, while limiting density elsewhere in line with urban policy goals.
+
+5. Planning for Flexibility
+
+Monitoring spatial changes in these business types can also serve as an early indicator of urban change. Persistent clustering or sudden dispersal may reflect shifting demand, gentrification pressures, or emerging trends, enabling pre-emptive urban management.
+
+In summary, spatial point pattern analyses shed light on the underlying market forces and behavioral factors that drive urban land use. By adapting zoning, infrastructure, business support, and regulation in response to these observed patterns, urban planners can better foster economic vitality, mitigate land use conflicts, and build a more resilient and balanced city.
+
+
+
+
+
+
+
+
+
+
+
+
+
