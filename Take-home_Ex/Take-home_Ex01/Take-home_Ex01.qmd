@@ -604,28 +604,28 @@ Most of the map is dark blue, indicating very low densities overall. There are o
 
 This indicates that the demand for pubs is low in Singapore generally.
 
+I will be performing the G function test on these business entities at Downtown Core in the subsequent sections since this is the area with high clustering for all 3 business entities.
+
 ```{r}
 G_56111 <- load.image("images/G_56111.png")
 plot(G_56111)
 ```
 
-This G function plot evaluates the 2nd order spatial point pattern for 56111 business entities. The solid black line shows the observed nearest neighbor distribution, while the dashed red line represents the theoretical Poisson (random) expectation. The observed curve lies consistently above the Poisson curve at shorter distances, indicating stronger clustering: many points have a neighbor closer than would occur by chance. As radius 
-r
-r increases, curves converge, showing randomness at larger scales. This pattern suggests these businesses are spatially aggregated rather than uniformly or randomly distributed across Singapore.
+This G function plot evaluates the 2nd order spatial point pattern for 56111 business entities. The solid black line shows the observed nearest neighbor distribution, while the dashed red line represents the theoretical Poisson (random) expectation. The observed curve lies consistently above the Poisson curve at shorter distances, indicating stronger clustering: many points have a neighbor closer than would occur by chance. As radius r increases, curves converge, showing randomness at larger scales. This pattern suggests these businesses are spatially aggregated rather than uniformly or randomly distributed in Downtown Core.
 
 ```{r}
 G_55101 <- load.image("images/G_55101.png")
 plot(G_55101)
 ```
 
-This G function plot investigates the 2nd order spatial point pattern for 55101 business entities. The solid black line (observed) sharply deviates above the red dashed line (Poisson expectation) at lower radii, before plateauing at 1. This suggests strong clustering of entities: many businesses have a neighbor much closer than expected under spatial randomness. The step-like shape indicates multiple locations with tightly packed entities and abrupt gaps. Overall, 55101 businesses are not randomly distributed—they are aggregated into discrete clusters within Singapore.
+This G function plot investigates the 2nd order spatial point pattern for 55101 business entities. The solid black line (observed) sharply deviates above the red dashed line (Poisson expectation) at lower radii, before plateauing at 1. This suggests strong clustering of entities: many businesses have a neighbor much closer than expected under spatial randomness. The step-like shape indicates multiple locations with tightly packed entities and abrupt gaps. Overall, 55101 businesses are not randomly distributed—they are aggregated into discrete clusters in Downtown Core.
 
 ```{r}
 G_56130 <- load.image("images/G_56130.png")
 plot(G_56130)
 ```
 
-This G function analysis for 56130 business entities shows the observed curve (solid black) very closely matches the theoretical Poisson expectation (dashed red) across all distances. Both curves rise slowly, and the observed curve never sharply exceeds the random model. This indicates no significant clustering: the spatial pattern of these entities is essentially random, with little evidence of aggregation or tight groupings. The 56130 businesses are more evenly dispersed throughout Singapore.
+This G function analysis for 56130 business entities shows the observed curve (solid black) never sharply exceeds the theoretical Poisson expectation (dashed red). This indicates no significant clustering: the spatial pattern of these entities is essentially random, with little evidence of aggregation or tight groupings. The 56130 businesses are more evenly dispersed in Downtown Core.
 
 ```{r}
 G_56111.csr <- load.image("images/G_56111.csr.png")
