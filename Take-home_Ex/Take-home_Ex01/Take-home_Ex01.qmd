@@ -567,26 +567,42 @@ plot(G_55101.csr)
 plot(G_56130.csr)
 ```
 
+In the second part of this assignment, I will be describing and discussing the analysis results.
+
+I am using primary_ssic_code 56111 (restaurants), 55101 (hotels) and 56130 (pubs) in my analysis.
+
 ```{r}
 kde_56111 <- load.image("images/kde_56111.png")
 plot(kde_56111)
 ```
 
-This kernel density estimate (KDE) heat map shows the spatial concentration of business entities classified under code 56111 in Singapore for the first half of 2025. The colors indicate density, with dark blue showing low concentrations and yellow-purple areas showing higher intensity. Most of Singapore shows sparse distributions, but a few hotspots emerge where business activity is significantly clustered. The highest density area is in the Central Region around the Downtown Core and Orchard districts, which appear in bright yellow shades, reflecting the strongest clustering of these businesses.
+This kernel density estimate (KDE) heat map shows the spatial concentration of business entities classified under code 56111 in Singapore for the first half of 2025. 
+
+The colors indicate density, with dark blue showing low concentrations and yellow-purple areas showing higher intensity. Most of Singapore shows sparse distributions, but a few hotspots emerge where business activity is significantly clustered. The highest density area is in the Central Region around the Downtown Core and Orchard districts, which appear in bright yellow shades, reflecting the strongest clustering of these businesses.
+
+Given that the Downtown Core is the central business district of Singapore, containing high-density commercial and financial activity areas, higher number of new restaurants is expected to open here. However, this could also be an indicator of higher number of old restaurants closing down due to factors such as high rental, giving way to new entrants.
 
 ```{r}
 kde_55101 <- load.image("images/kde_55101.png")
 plot(kde_55101)
 ```
 
-This KDE heat map visualizes the spatial density of business entities classified under code 55101 in Singapore during the first half of 2025. Areas in dark blue indicate low business concentrations, while warmer yellow and pink tones represent higher densities. Most of the island shows very scattered distributions; however, several noticeable hotspots occur in the south-central part of Singapore. The highest density is observed in the Downtown Core, particularly near Orchard and Marina Bay, shown in bright yellow. This suggests these central districts remain the main clustering points for this business type, reflecting their commercial significance.
+This KDE heat map visualizes the spatial density of business entities classified under code 55101 in Singapore during the first half of 2025. 
+
+Areas in dark blue indicate low business concentrations, while warmer yellow and pink tones represent higher densities. Most of the island shows very scattered distributions; however, several noticeable hotspots occur in the south-central part of Singapore. The highest density is observed in the Downtown Core, particularly near Orchard and Marina Bay, shown in bright yellow. This suggests these central districts remain the main clustering points for this business type, reflecting their commercial significance.
+
+As the heart of Singapore and a popular tourist destination, the Downtown Core is a prime location for establishing hotels.
 
 ```{r}
 kde_56130 <- load.image("images/kde_56130.png")
 plot(kde_56130)
 ```
 
-This kernel density estimate heat map shows where business entities of code 56130 are most concentrated in Singapore for the first half of 2025. Most of the map is dark blue, indicating very low densities overall. There are only a few locations with moderate clustering, shown as small yellow or magenta hotspots. The area with the highest density is in the Downtown Core and its nearby central districts, which display distinct yellow marks. This implies that, for this business type, Singapore’s central business area remains the main location for clustering.
+This KDE heat map shows where business entities of code 56130 are most concentrated in Singapore for the first half of 2025. 
+
+Most of the map is dark blue, indicating very low densities overall. There are only a few locations with moderate clustering, shown as small yellow or magenta hotspots. The area with the highest density is in the Downtown Core and its nearby central districts, which display distinct yellow marks. This implies that, for this business type, Singapore’s central business area remains the main location for clustering.
+
+This indicates that the demand for pubs is low in Singapore generally.
 
 ```{r}
 G_56111 <- load.image("images/G_56111.png")
