@@ -13,7 +13,7 @@ execute:
 Loading the package
 
 ```{r}
-pacman::p_load(sf, sfdep, tmap, tidyverse, knitr)
+pacman::p_load(sf, sfdep, tmap, tidyverse, knitr, dplyr)
 ```
 
 Preparing the Data
@@ -55,7 +55,7 @@ tm_shape(BusStop_in_SG) +
 
 ```{r}
 hexagon <- st_make_grid(mpsz,
-                        cellsize = 700,
+                        cellsize = 750,
                         what = "polygon",
                         square = FALSE) %>%
   st_sf()
@@ -101,4 +101,66 @@ kable(head(bs_hex))
 ```{r}
 trips <- inner_join(trips, bs_hex)
 kable(head(trips))
+```
+
+```{r}
+# Weekday morning peak trips (6am-9am)
+weekday_morning_peak <- trips %>%
+  filter(DAY_TYPE == "WEEKDAY",
+         HOUR_OF_DAY >= 6, HOUR_OF_DAY <= 9) %>%
+  group_by(HEX_ID) %>%
+  summarise(TRIPS_MORNING_PEAK = sum(TRIPS))
+```
+
+```{r}
+# Weekday afternoon peak trips (5pm-8pm)
+weekday_afternoon_peak <- trips %>%
+  filter(DAY_TYPE == "WEEKDAY",
+         HOUR_OF_DAY >= 17, HOUR_OF_DAY <= 20) %>%
+  group_by(HEX_ID) %>%
+  summarise(TRIPS_AFTERNOON_PEAK = sum(TRIPS))
+```
+
+```{r}
+# Weekend/holiday trips (11am-8pm)
+weekend_holiday_peak <- trips %>%
+  filter(DAY_TYPE == "WEEKENDS/HOLIDAY",
+         HOUR_OF_DAY >= 11, HOUR_OF_DAY <= 20) %>%
+  group_by(HEX_ID) %>%
+  summarise(TRIPS_WEEKEND_HOLIDAY = sum(TRIPS))
+```
+
+```{r}
+# Combine results
+trips_by_peak <- full_join(weekday_morning_peak, weekday_afternoon_peak, by = "HEX_ID") %>%
+  full_join(weekend_holiday_peak, by = "HEX_ID") %>%
+  replace_na(list(
+    TRIPS_MORNING_PEAK = 0,
+    TRIPS_AFTERNOON_PEAK = 0,
+    TRIPS_WEEKEND_HOLIDAY = 0))
+
+print(trips_by_peak)
+```
+
+```{r}
+trips_by_hex <- trips %>%
+  group_by(HEX_ID) %>%
+  summarise(TOTAL_TRIPS = sum(TRIPS))
+```
+
+```{r}
+hexagon_trips <- hexagon %>%
+  left_join(trips_by_hex, by = "HEX_ID") %>%
+  replace_na(list(TOTAL_TRIPS = 0))
+```
+
+```{r}
+tm_shape(hexagon_trips) +
+  tm_polygons("TOTAL_TRIPS",
+              palette = "Reds",
+              title = "Passenger Trips",
+              style = "quantile") +
+  tm_shape(BusStop_in_SG) +
+  tm_dots(size = 0.1, col = "blue") +
+  tm_layout(title = "Geographical Distribution of Passenger Trips by TAZ")
 ```

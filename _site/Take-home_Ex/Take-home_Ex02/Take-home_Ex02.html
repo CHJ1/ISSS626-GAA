@@ -269,7 +269,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <p>Loading the package</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(sf, sfdep, tmap, tidyverse, knitr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(sf, sfdep, tmap, tidyverse, knitr, dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Preparing the Data</p>
 <div class="cell">
@@ -327,7 +327,7 @@ Projected CRS: SVY21</code></pre>
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>hexagon <span class="ot">&lt;-</span> <span class="fu">st_make_grid</span>(mpsz,</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>                        <span class="at">cellsize =</span> <span class="dv">700</span>,</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>                        <span class="at">cellsize =</span> <span class="dv">750</span>,</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>                        <span class="at">what =</span> <span class="st">"polygon"</span>,</span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>                        <span class="at">square =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_sf</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -358,27 +358,27 @@ Projected CRS: SVY21</code></pre>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">POLYGON ((4067.538 27468.93…</td>
+<td style="text-align: left;">POLYGON ((3792.538 27656.57…</td>
 <td style="text-align: left;">H0001</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">POLYGON ((4417.538 28075.15…</td>
+<td style="text-align: left;">POLYGON ((4167.538 28306.09…</td>
 <td style="text-align: left;">H0002</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">POLYGON ((4417.538 30500.02…</td>
+<td style="text-align: left;">POLYGON ((4542.538 30254.65…</td>
 <td style="text-align: left;">H0003</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">POLYGON ((4767.538 28681.37…</td>
+<td style="text-align: left;">POLYGON ((4542.538 31553.68…</td>
 <td style="text-align: left;">H0004</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">POLYGON ((4767.538 29893.8,…</td>
+<td style="text-align: left;">POLYGON ((4917.538 28306.09…</td>
 <td style="text-align: left;">H0005</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">POLYGON ((4767.538 31106.24…</td>
+<td style="text-align: left;">POLYGON ((4917.538 29605.13…</td>
 <td style="text-align: left;">H0006</td>
 </tr>
 </tbody>
@@ -471,24 +471,24 @@ Projected CRS: SVY21</code></pre>
 <td style="text-align: left;">H0002</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2554</td>
-<td style="text-align: left;">25761</td>
-<td style="text-align: left;">H0002</td>
-</tr>
-<tr class="even">
 <td style="text-align: left;">241</td>
 <td style="text-align: left;">26379</td>
 <td style="text-align: left;">H0003</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;">2652</td>
-<td style="text-align: left;">25741</td>
+<tr class="even">
+<td style="text-align: left;">1468</td>
+<td style="text-align: left;">26299</td>
 <td style="text-align: left;">H0004</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2554</td>
+<td style="text-align: left;">25761</td>
+<td style="text-align: left;">H0005</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">1635</td>
 <td style="text-align: left;">26399</td>
-<td style="text-align: left;">H0005</td>
+<td style="text-align: left;">H0006</td>
 </tr>
 </tbody>
 </table>
@@ -514,45 +514,123 @@ Projected CRS: SVY21</code></pre>
 <td style="text-align: left;">WEEKENDS/HOLIDAY</td>
 <td style="text-align: right;">9</td>
 <td style="text-align: right;">3</td>
-<td style="text-align: left;">H0842</td>
+<td style="text-align: left;">H0765</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">10099</td>
 <td style="text-align: left;">WEEKENDS/HOLIDAY</td>
 <td style="text-align: right;">13</td>
 <td style="text-align: right;">31</td>
-<td style="text-align: left;">H0424</td>
+<td style="text-align: left;">H0393</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">64601</td>
 <td style="text-align: left;">WEEKENDS/HOLIDAY</td>
 <td style="text-align: right;">21</td>
 <td style="text-align: right;">3</td>
-<td style="text-align: left;">H0700</td>
+<td style="text-align: left;">H0633</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">53009</td>
 <td style="text-align: left;">WEEKENDS/HOLIDAY</td>
 <td style="text-align: right;">16</td>
 <td style="text-align: right;">10</td>
-<td style="text-align: left;">H0564</td>
+<td style="text-align: left;">H0529</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">80051</td>
 <td style="text-align: left;">WEEKENDS/HOLIDAY</td>
 <td style="text-align: right;">18</td>
 <td style="text-align: right;">4</td>
-<td style="text-align: left;">H0665</td>
+<td style="text-align: left;">H0601</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">70031</td>
 <td style="text-align: left;">WEEKDAY</td>
 <td style="text-align: right;">14</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: left;">H0678</td>
+<td style="text-align: left;">H0612</td>
 </tr>
 </tbody>
 </table>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Weekday morning peak trips (6am-9am)</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>weekday_morning_peak <span class="ot">&lt;-</span> trips <span class="sc">%&gt;%</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(DAY_TYPE <span class="sc">==</span> <span class="st">"WEEKDAY"</span>,</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>         HOUR_OF_DAY <span class="sc">&gt;=</span> <span class="dv">6</span>, HOUR_OF_DAY <span class="sc">&lt;=</span> <span class="dv">9</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(HEX_ID) <span class="sc">%&gt;%</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">TRIPS_MORNING_PEAK =</span> <span class="fu">sum</span>(TRIPS))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Weekday afternoon peak trips (5pm-8pm)</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>weekday_afternoon_peak <span class="ot">&lt;-</span> trips <span class="sc">%&gt;%</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(DAY_TYPE <span class="sc">==</span> <span class="st">"WEEKDAY"</span>,</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>         HOUR_OF_DAY <span class="sc">&gt;=</span> <span class="dv">17</span>, HOUR_OF_DAY <span class="sc">&lt;=</span> <span class="dv">20</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(HEX_ID) <span class="sc">%&gt;%</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">TRIPS_AFTERNOON_PEAK =</span> <span class="fu">sum</span>(TRIPS))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Weekend/holiday trips (11am-8pm)</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>weekend_holiday_peak <span class="ot">&lt;-</span> trips <span class="sc">%&gt;%</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(DAY_TYPE <span class="sc">==</span> <span class="st">"WEEKENDS/HOLIDAY"</span>,</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>         HOUR_OF_DAY <span class="sc">&gt;=</span> <span class="dv">11</span>, HOUR_OF_DAY <span class="sc">&lt;=</span> <span class="dv">20</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(HEX_ID) <span class="sc">%&gt;%</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">TRIPS_WEEKEND_HOLIDAY =</span> <span class="fu">sum</span>(TRIPS))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine results</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>trips_by_peak <span class="ot">&lt;-</span> <span class="fu">full_join</span>(weekday_morning_peak, weekday_afternoon_peak, <span class="at">by =</span> <span class="st">"HEX_ID"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">full_join</span>(weekend_holiday_peak, <span class="at">by =</span> <span class="st">"HEX_ID"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">replace_na</span>(<span class="fu">list</span>(</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">TRIPS_MORNING_PEAK =</span> <span class="dv">0</span>,</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">TRIPS_AFTERNOON_PEAK =</span> <span class="dv">0</span>,</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">TRIPS_WEEKEND_HOLIDAY =</span> <span class="dv">0</span>))</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(trips_by_peak)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 824 × 4
+   HEX_ID TRIPS_MORNING_PEAK TRIPS_AFTERNOON_PEAK TRIPS_WEEKEND_HOLIDAY
+   &lt;fct&gt;               &lt;dbl&gt;                &lt;dbl&gt;                 &lt;dbl&gt;
+ 1 H0001                 374                 1111                  1299
+ 2 H0002                  32                   61                    50
+ 3 H0003                  89                  234                   170
+ 4 H0004                 109                  289                   161
+ 5 H0005                 218                  869                   444
+ 6 H0006                1210                 3987                  2294
+ 7 H0007                3120                 2010                  4318
+ 8 H0008                 775                  224                   322
+ 9 H0009                 274                 2567                   958
+10 H0010                1411                 4593                  3169
+# ℹ 814 more rows</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>trips_by_hex <span class="ot">&lt;-</span> trips <span class="sc">%&gt;%</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(HEX_ID) <span class="sc">%&gt;%</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">TOTAL_TRIPS =</span> <span class="fu">sum</span>(TRIPS))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>hexagon_trips <span class="ot">&lt;-</span> hexagon <span class="sc">%&gt;%</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(trips_by_hex, <span class="at">by =</span> <span class="st">"HEX_ID"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">replace_na</span>(<span class="fu">list</span>(<span class="at">TOTAL_TRIPS =</span> <span class="dv">0</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(hexagon_trips) <span class="sc">+</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>(<span class="st">"TOTAL_TRIPS"</span>,</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">palette =</span> <span class="st">"Reds"</span>,</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">title =</span> <span class="st">"Passenger Trips"</span>,</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>              <span class="at">style =</span> <span class="st">"quantile"</span>) <span class="sc">+</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>(BusStop_in_SG) <span class="sc">+</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_dots</span>(<span class="at">size =</span> <span class="fl">0.1</span>, <span class="at">col =</span> <span class="st">"blue"</span>) <span class="sc">+</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">title =</span> <span class="st">"Geographical Distribution of Passenger Trips by TAZ"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Take-home_Ex02_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 
