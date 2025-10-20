@@ -155,12 +155,14 @@ hexagon_trips <- hexagon %>%
 ```
 
 ```{r}
+tm_shape(mpsz) +
+  tm_polygons() +
 tm_shape(hexagon_trips) +
   tm_polygons("TOTAL_TRIPS",
               palette = "Reds",
               title = "Passenger Trips",
               style = "quantile") +
   tm_shape(BusStop_in_SG) +
-  tm_dots(size = 0.1, col = "blue") +
-  tm_layout(title = "Geographical Distribution of Passenger Trips by TAZ")
+  tm_dots(size = 0.1, col = "blue")
 ```
+
