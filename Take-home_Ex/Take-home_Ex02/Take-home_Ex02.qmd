@@ -13,7 +13,7 @@ execute:
 Loading the package
 
 ```{r}
-pacman::p_load(sf, sfdep, tmap, tidyverse, knitr, dplyr)
+pacman::p_load(sf, sfdep, tmap, tidyverse, knitr, dplyr, spdep)
 ```
 
 Preparing the Data
@@ -163,8 +163,112 @@ tm_shape(hexagon_trips) +
               title = "Passenger Trips",
               style = "quantile") +
   tm_shape(BusStop_in_SG) +
-  tm_dots(size = 0.1, col = "blue")
+  tm_dots(size = 0.1, col = "blue") +
+  tm_title("Geographical Distribution of Passenger Trips by TAZ")        
 ```
 
 The geovisualisation displays passenger bus trip densities across Singapore using a hexagonal spatial aggregation. High concentrations of trips are visualised in deep red hexagons, which cluster predominantly within central and eastern regions, signifying areas of intense bus usage likely corresponding to commercial hubs, dense residential zones, or key transport corridors. Outlying regions exhibit lighter shades, indicating fewer trips, with peripheral or industrial areas including the western and northern edges showing noticeably less activity. The distribution highlights a clear urban core with substantial public transport reliance, tapering off towards the outskirts. Bus stop locations, mapped as blue dots, are tightly packed in high-density hexagons and more dispersed in low-density areas, supporting the spatial association between bus stop concentration and passenger volume.
+
+```{r}
+wm_q <- hexagon_trips %>%
+  mutate(nb = st_contiguity(geometry),
+         .before = 1)
+
+wt <- nb2listw(wm_q$nb, style = "W", zero.policy = TRUE)
+
+wm_q$wt <- list(wt) 
+```
+
+```{r}
+summary(wm_q$nb)
+```
+
+```{r}
+set.seed(123)
+
+wt <- wm_q$wt[[1]]
+
+observed <- localmoran(wm_q$TOTAL_TRIPS, wt, zero.policy = TRUE)
+
+nsim <- 99
+simulated <- matrix(NA, nrow = nrow(wm_q), ncol = nsim)
+
+for(i in 1:nsim) {
+  permuted <- sample(wm_q$TOTAL_TRIPS)
+  simulated[, i] <- localmoran(permuted, wt, zero.policy = TRUE)[,1] 
+}
+
+p_values <- apply(simulated, 1, function(x) {
+  mean(abs(x) >= abs(observed[,1]))
+})
+
+result <- cbind(observed, p_value_sim = p_values)
+head(result)
+```
+
+```{r}
+result_sf <- wm_q %>%
+  mutate(local_moran_I = observed[,1],
+         p_value_sim = p_values)
+
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(result_sf) +
+  tm_polygons("local_moran_I",
+              palette = "RdBu",
+              style = "pretty",
+              n = 5,
+              midpoint = 0,
+              title = "Local Moran's I") +
+  tm_borders(alpha = 0.5) +
+  tm_title("Local Moran's I of Passenger Trips (Queen's method)")
+```
+
+The Local Moran’s I map, using Queen’s contiguity for hexagonal zones, identifies the spatial clustering of bus passenger trip counts across Singapore. Most hexagons are shaded in light hues (0 to 2), indicating that localised clustering of trip volumes is generally modest. Pockets of moderate positive Local Moran’s I (values 2–6, blue shades) are mainly observed in central Singapore and eastern zone, suggesting the presence of spatial clusters—areas where high trip counts are surrounded by similar high values, likely highlighting the dense urban core and possibly major transport corridors.
+
+Conversely, many peripheral and central hexagons exhibit low or even negative Local Moran’s I, revealing either spatial randomness or potential outliers. Overall, the pattern demonstrates that while much of Singapore shows only mild local spatial autocorrelation in bus trip densities, there are distinct, notable spatial clusters where passenger volumes are consistently high.
+
+Recommendation: Urban planners should further investigate the reasons behind low clustering of bus passenger trips in areas shaded orange, such as Jurong East, Central, and eastern regions. These are highly developed zones with substantial residential populations and high footfall, so the presence of clusters with low bus trip volumes may indicate that existing bus routes are not adequately serving residents’ travel needs. It is possible that people are not using buses because the current routes do not align with their desired destinations or travel patterns. Similarly, in the northern regions, clusters of low passenger trips could signal that bus services are inconvenient. Planners should therefore review and optimise bus routes, frequencies, and connectivity in these areas to better match commuter demand and improve the overall convenience and attractiveness of bus travel.
+
+```{r}
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(result_sf) +
+  tm_polygons("p_value_sim",
+              palette = "-RdYlBu",   
+              style = "fixed",
+              breaks = c(-Inf, 0.001, 0.01, 0.05, 0.1, Inf), 
+              title = "Moran's I p-value") +
+  tm_borders(alpha = 0.3) +
+  tm_title("Choropleth of Local Moran's I p-values of Passenger Trips (Queen's method)")
+```
+
+This choropleth map visualises the statistical significance of spatial clusters in passenger bus trip counts, using Local Moran's I p-values. The vast majority of hexagonal zones across Singapore are shaded in red, representing p-values 0.100 or more. This indicates that, for most areas, there is no statistically significant local spatial autocorrelation of bus trip densities. Only a small number of hexagons, concentrated around the Changi area, shows blue shading (p-values less than 0.01), meaning these zones have highly significant clustering of passenger trips and are unlikely to be random.
+
+Overall, this map demonstrates that genuine hotspots of spatial clustering in bus trip activity are rare, localised mostly around the Changi area, while most of Singapore's hexagonal areas do not exhibit strong, statistically significant local clustering of passenger volumes. 
+
+```{r}
+significant_result_sf <- result_sf %>% filter(p_value_sim < 0.05)
+
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(significant_result_sf) +
+  tm_polygons("p_value_sim",
+              palette = "Reds",   
+              style = "fixed",
+              breaks = c(-Inf, 0.001, 0.01, 0.05, 0.1, Inf), 
+              title = "Moran's I p-value") +
+  tm_borders(alpha = 0.3) +
+  tm_title("Choropleth of Local Moran's I Significant p-values of Passenger Trips (Queen's method)")
+```
+
+This choropleth map highlights only those hexagonal zones where the Local Moran's I p-value is below 0.05, meaning statistically significant spatial clustering of bus passenger trips. The results show just a handful of hexagons, concentrated mostly around the Changi area, that display this level of significance. The rest of the map remains unshaded, indicating no meaningful local clustering elsewhere. These flagged hexagons likely correspond to exceptionally active transport nodes, where high passenger volumes form clearly defined spatial clusters, rather than being randomly distributed.
+
+Statistically, this result underscores that meaningful bus trip hotspots are rare and highly localised. Despite Singapore’s extensive transit system, only a few zones demonstrate pronounced clustering at a rigorous significance cutoff. 
+
+Recommendation: Significant spatial clustering, as detected in the Changi area, indicates that these areas have a consistent pattern of bus usage that is higher than would be expected by chance, even if the absolute number of trips is not the highest. This suggests a stable, potentially underserved commuter base that could respond positively to better service. Planners should prioritise increasing service frequency, improving infrastructure, and expanding connectivity in these active transport nodes to accommodate and encourage further public transport use in these critical areas.
+
+
+
+
 
