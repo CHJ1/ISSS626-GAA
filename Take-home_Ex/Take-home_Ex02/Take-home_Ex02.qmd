@@ -353,6 +353,12 @@ tm_shape(gi_mk_sf) +
   tm_title("Spatio-Temporal Trend of Local Gi* Values (Passenger Trips)")
 ```
 
+Red hexagons indicate areas where local clustering of bus trips is decreasing when moving from the morning to afternoon to weekend/holiday periods. In urban zones such as Kallang, this suggests that consistently high passenger clustering during one period (e.g., the morning commute) becomes less pronounced as travel demand diversifies across the rest of the day and into weekends. Possible explanations include shifting commuter behaviours that distribute demand more evenly across time-periods.
+
+Blue hexagons show places with an increasing trend in local clustering across these temporal segments. Such blue-dominant regions are seeing bus trip activity that becomes more spatially concentrated in certain periods.
+
+Overall, these patterns reveal how Singapore’s bus network supports both mature, well-connected districts and newly developing regions where transit demand is growing or becoming highly periodic. For transport policy, this means simultaneously optimising core routes and proactively scaling up service in emerging hot spots identified by temporal shifts in spatial clustering.
+
 ```{r}
 gi_results_list <- list()
 
@@ -403,6 +409,14 @@ tm_shape(filter(gi_sf, PERIOD == "TRIPS_MORNING_PEAK")) +
   tm_title("EHSA: Morning Peak Significant Hot/Cold Spots")
 ```
 
+Significant morning hot spots (warmer shades) are clustered in districts across the northeast (e.g., Sengkang, Punggol), central-east (e.g., Bedok, Tampines), and the northwest (e.g., Woodlands, Choa Chu Kang), as well as in pockets in the west (Jurong West) and the Central area. These clusters often correspond to residential estates, which are major origin points for commuters heading to schools, workplaces, and interchange stations during the morning rush.
+
+The Gi* statistic for most significant clusters remains moderate (0-4), suggesting that while these areas experience reliably elevated passenger trips, the spatial clustering is not extreme or highly isolated. Instead, the activity is more diffuse, likely due to a generally well-distributed network of bus origin points across the city.
+
+There are almost no significant cold spots (blue), implying that low-volume or non-clustered morning peak bus trip zones do not form statistically robust clusters at the hexagonal scale and significance threshold used. This hints at a background of widely distributed, moderate use rather than clear zones of under-utilisation in the morning peak.
+
+These results indicate a public bus system where pronounced morning peak demand is spatially localised. Key commuter towns surface as persistent hot spots due to their residential density and strong outbound flows, but system-wide, morning congestion is broadly distributed rather than sharply concentrated. This pattern supports prioritising supply adjustments, such as express service deployment, primarily in residential clusters. Peripheral and less developed regions do not form significant clusters, meaning interventions there can be deprioritised without risk of missing hidden demand hotspots.
+
 ```{r}
 tm_shape(mpsz) +
   tm_polygons() +
@@ -417,6 +431,14 @@ tm_shape(filter(gi_sf, PERIOD == "TRIPS_AFTERNOON_PEAK")) +
   tm_borders(alpha = 0.4) +
   tm_title("EHSA: Afternoon Peak Significant Hot/Cold Spots")
 ```
+
+Hot spots (shaded from light to deep red) remain concentrated in major residential areas across the northern (Woodlands, Yishun), north-eastern (Hougang, Sengkang, Punggol), western (Choa Chu Kang, Jurong West), and eastern (Tampines) zones. Compared to the morning, these clusters are slightly more pronounced, as returning commuters travel from employment areas to their homes.
+
+Afternoon hot spot intensities are moderate (mostly 1–4, a few up to 5), indicating that while statistically significant, the clustering is not extremely sharp or isolated. This is typical for homebound commuter flows, where activities (e.g., staggered work/school release times, errand trips) occur over a broader window than the tightly synchronised morning rush.
+
+There are no statistically significant cold spots. This points to the background level of afternoon trips being widespread but failing to form strong, low-volume clusters at the spatial scale used.
+
+The map demonstrates that afternoon peak demand is not only persistent but distributed across multiple mature residential areas, with slightly intensified clustering compared to the morning. This reflects the more staggered and diverse dispersal of passengers returning home, as well as sustained demand around major neighbourhood interchange points. Strategic improvements (bus frequency, capacity allocation, and even dynamic route planning) would have maximum impact in these cluster zones, particularly as work and school release schedules continue to diversify mode and timing of travel. Peripheral and less developed zones again remain outside of statistically robust clusters, consistently supporting a focus on the main heartlands for afternoon peak interventions.
 
 ```{r}
 tm_shape(mpsz) +
@@ -433,7 +455,14 @@ tm_shape(filter(gi_sf, PERIOD == "TRIPS_WEEKEND_HOLIDAY")) +
   tm_title("EHSA: Weekend/Holiday Significant Hot/Cold Spots")
 ```
 
+Significant hot spots (ranging from Gi* 1 to 6) are scattered throughout the island, but with notable concentrations in the north (Woodlands), centre (Toa Payoh, Ang Mo Kio), east (Bedok, Tampines), and west (Bukit Batok, Jurong West, Bukit Panjang). Unlike weekday peaks, these clusters are more spatially dispersed and often situated at key recreation/leisure areas (like City Hall).
 
+Many of the hexagons highlighted correspond to major lifestyle destinations, such as East Coast Park, Changi, and Jurong Lake Gardens. This reflects the centrality of leisure travel during weekends, when families and groups make trips rather than routine commutes.
 
+Compared to weekday maps, the range and upper values of significant Gi* intensities are slightly higher in some locations, suggesting that weekend mobility can create sharper and more spatially isolated spikes in trip volumes (e.g., to destinations not typically crowded on weekdays).
+
+As with weekday analyses, cold spots are not evident, reinforcing that areas with low cluster significance remain so consistently, likely due to low or diffuse travel demand during weekends.
+
+The result demonstrates that Singapore’s bus network experiences spatially distinct, event- and leisure-driven demand spikes on weekends and holidays. Urban planning and transport policy should account for this by increasing operational flexibility, such as deploying extra capacity or special services to clusters near major parks, coastal zones, and shopping districts during these periods. These findings can also inform broader strategies in amenity planning, supporting equitable access to recreational facilities across the island.
 
 
