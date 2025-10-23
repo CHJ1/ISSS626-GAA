@@ -32,12 +32,16 @@ BusStop = st_read(dsn = "data/Geospatial/",
 odbus <- read_csv("data/LTADataMall/origin_destination_bus_202508.csv")
 ```
 
+Plots polygons from mpsz and overlays bus stop points from BusStop on the same map.
+
 ```{r}
 tm_shape(mpsz) +
   tm_polygons() +
 tm_shape(BusStop) +
   tm_dots()
 ```
+
+Selects bus stops located within mpsz polygons, returning only those points with polygon attributes.
 
 ```{r}
 BusStop_in_SG <- st_join(
@@ -46,12 +50,16 @@ BusStop_in_SG <- st_join(
   left = FALSE)
 ```
 
+Maps polygons from mpsz and overlays bus stops located within them from BusStop_in_SG as points.
+
 ```{r}
 tm_shape(mpsz) +
   tm_polygons() +
 tm_shape(BusStop_in_SG) +
   tm_dots()
 ```
+
+Generates a hexagonal grid of 750-unit cell size covering the extent of mpsz, returned as an sf polygon object.
 
 ```{r}
 hexagon <- st_make_grid(mpsz,
@@ -61,6 +69,8 @@ hexagon <- st_make_grid(mpsz,
   st_sf()
 ```
 
+Counts the number of bus stops in each hexagon and keeps only hexagons containing bus stops.
+
 ```{r}
 hexagon$n_collisions = 
   lengths(st_intersects(
@@ -68,6 +78,8 @@ hexagon$n_collisions =
 
 hexagon <- filter(hexagon, n_collisions > 0)
 ```
+
+Drops the n_collisions column, adds a formatted hexagon ID as a factor, and displays the first few rows.
 
 ```{r}
 hexagon <- hexagon %>%
@@ -80,6 +92,8 @@ hexagon$HEX_ID <- sprintf(
 kable(head(hexagon))
 ```
 
+Selects and renames trip data columns, converts bus stop code to a factor, and displays the first rows.
+
 ```{r}
 trips <- odbus %>%
   select(c(ORIGIN_PT_CODE, DAY_TYPE, TIME_PER_HOUR, TOTAL_TRIPS)) %>%
@@ -90,6 +104,8 @@ trips$BUS_STOP_N <- as.factor(trips$BUS_STOP_N)
 kable(head(trips))
 ```
 
+Finds bus stops located in each hexagon, retains only bus stop and hexagon ID columns, and shows the first few rows.
+
 ```{r}
 bs_hex <- st_intersection(
   BusStop, hexagon) %>%
@@ -98,10 +114,14 @@ bs_hex <- st_intersection(
 kable(head(bs_hex))
 ```
 
+Merges trip data with hexagon IDs by matching bus stop codes, keeping only matching rows, and shows the first rows.
+
 ```{r}
 trips <- inner_join(trips, bs_hex)
 kable(head(trips))
 ```
+
+Filters trips for weekday mornings (6-9am), groups by hexagon, and sums trips per hexagon.
 
 ```{r}
 # Weekday morning peak trips (6am-9am)
@@ -112,6 +132,8 @@ weekday_morning_peak <- trips %>%
   summarise(TRIPS_MORNING_PEAK = sum(TRIPS))
 ```
 
+Filters trips for weekday afternoons (5-8pm), groups by hexagon, and sums trips per hexagon to get afternoon peak totals.
+
 ```{r}
 # Weekday afternoon peak trips (5pm-8pm)
 weekday_afternoon_peak <- trips %>%
@@ -121,6 +143,8 @@ weekday_afternoon_peak <- trips %>%
   summarise(TRIPS_AFTERNOON_PEAK = sum(TRIPS))
 ```
 
+Filters trips for weekends/holidays (11am-8pm), groups by hexagon, and sums trips to get weekend/holiday peak totals per hexagon.
+
 ```{r}
 # Weekend/holiday trips (11am-8pm)
 weekend_holiday_peak <- trips %>%
@@ -129,6 +153,8 @@ weekend_holiday_peak <- trips %>%
   group_by(HEX_ID) %>%
   summarise(TRIPS_WEEKEND_HOLIDAY = sum(TRIPS))
 ```
+
+Combines peak trip data across time periods into one table, filling missing values with zero.
 
 ```{r}
 # Combine results
@@ -142,17 +168,23 @@ trips_by_peak <- full_join(weekday_morning_peak, weekday_afternoon_peak, by = "H
 print(trips_by_peak)
 ```
 
+Aggregates total trips per hexagon by summing trips grouped by HEX_ID.
+
 ```{r}
 trips_by_hex <- trips %>%
   group_by(HEX_ID) %>%
   summarise(TOTAL_TRIPS = sum(TRIPS))
 ```
 
+Joins total trip counts to each hexagon, filling missing values with zero.
+
 ```{r}
 hexagon_trips <- hexagon %>%
   left_join(trips_by_hex, by = "HEX_ID") %>%
   replace_na(list(TOTAL_TRIPS = 0))
 ```
+
+Displays a thematic map with hexagon polygons colored by total trips, bus stops as blue dots, and base boundaries for spatial context.
 
 ```{r}
 tm_shape(mpsz) +
@@ -169,6 +201,8 @@ tm_shape(hexagon_trips) +
 
 The geovisualisation displays passenger bus trip densities across Singapore using a hexagonal spatial aggregation. High concentrations of trips are visualised in deep red hexagons, which cluster predominantly within central and eastern regions, signifying areas of intense bus usage likely corresponding to commercial hubs, dense residential zones, or key transport corridors. Outlying regions exhibit lighter shades, indicating fewer trips, with peripheral or industrial areas including the western and northern edges showing noticeably less activity. The distribution highlights a clear urban core with substantial public transport reliance, tapering off towards the outskirts. Bus stop locations, mapped as blue dots, are tightly packed in high-density hexagons and more dispersed in low-density areas, supporting the spatial association between bus stop concentration and passenger volume.
 
+Computes neighbour contiguity and spatial weights for hexagons, attaching the weights list to the data for spatial modeling.
+
 ```{r}
 wm_q <- hexagon_trips %>%
   mutate(nb = st_contiguity(geometry),
@@ -179,9 +213,13 @@ wt <- nb2listw(wm_q$nb, style = "W", zero.policy = TRUE)
 wm_q$wt <- list(wt) 
 ```
 
+Summarizes the spatial neighbours list, showing counts and statistics of polygon adjacency relationships for quality assessment
+
 ```{r}
 summary(wm_q$nb)
 ```
+
+Computes Local Moran's I for trips with Monte Carlo permutation testing to identify significant spatial autocorrelation.
 
 ```{r}
 set.seed(123)
@@ -205,6 +243,8 @@ p_values <- apply(simulated, 1, function(x) {
 result <- cbind(observed, p_value_sim = p_values)
 head(result)
 ```
+
+Maps Local Moran's I values for passenger trips by hexagon, highlighting spatial clustering patterns with a diverging colour scale and base boundaries for context.
 
 ```{r}
 result_sf <- wm_q %>%
@@ -230,6 +270,8 @@ Conversely, many peripheral and central hexagons exhibit low or even negative Lo
 
 Recommendation: Urban planners should further investigate the reasons behind low clustering of bus passenger trips in areas shaded orange, such as Jurong East, Central, and eastern regions. These are highly developed zones with substantial residential populations and high footfall, so the presence of clusters with low bus trip volumes may indicate that existing bus routes are not adequately serving residents’ travel needs. It is possible that people are not using buses because the current routes do not align with their desired destinations or travel patterns. Similarly, in the northern regions, clusters of low passenger trips could signal that bus services are inconvenient. Planners should therefore review and optimise bus routes, frequencies, and connectivity in these areas to better match commuter demand and improve the overall convenience and attractiveness of bus travel.
 
+Visualizes spatial significance of Local Moran's I for passenger trips, showing areas of significant spatial clustering using a colour-coded p-value map.
+
 ```{r}
 tm_shape(mpsz) +
   tm_polygons() +
@@ -246,6 +288,8 @@ tm_shape(result_sf) +
 This choropleth map visualises the statistical significance of spatial clusters in passenger bus trip counts, using Local Moran's I p-values. The vast majority of hexagonal zones across Singapore are shaded in red, representing p-values 0.100 or more. This indicates that, for most areas, there is no statistically significant local spatial autocorrelation of bus trip densities. Only a small number of hexagons, concentrated around the Changi area, shows blue shading (p-values less than 0.01), meaning these zones have highly significant clustering of passenger trips and are unlikely to be random.
 
 Overall, this map demonstrates that genuine hotspots of spatial clustering in bus trip activity are rare, localised mostly around the Changi area, while most of Singapore's hexagonal areas do not exhibit strong, statistically significant local clustering of passenger volumes. 
+
+Maps hexagons with significant Local Moran's I p-values, highlighting spatial clusters of passenger trips with a focused red-scale colour scheme.
 
 ```{r}
 significant_result_sf <- result_sf %>% filter(p_value_sim < 0.05)
@@ -267,6 +311,8 @@ This choropleth map highlights only those hexagonal zones where the Local Moran'
 Statistically, this result underscores that meaningful bus trip hotspots are rare and highly localised. Despite Singapore’s extensive transit system, only a few zones demonstrate pronounced clustering at a rigorous significance cutoff. 
 
 Recommendation: Significant spatial clustering, as detected in the Changi area, indicates that these areas have a consistent pattern of bus usage that is higher than would be expected by chance, even if the absolute number of trips is not the highest. This suggests a stable, potentially underserved commuter base that could respond positively to better service. Planners should prioritise increasing service frequency, improving infrastructure, and expanding connectivity in these active transport nodes to accommodate and encourage further public transport use in these critical areas.
+
+Prepares peak trip data by hexagon for spatial-temporal analysis by joining, pivoting to long format, and reattaching to spatial polygons.
 
 ```{r}
 trips_by_peak_full <- hexagon %>%
@@ -291,10 +337,14 @@ hexagon_trips_st <- hexagon %>%
   replace_na(list(TRIPS = 0))
 ```
 
+Calculates local spatial autocorrelation with permutation testing, producing p-values for passenger trips across hexagons.
+
 ```{r}
 hexagon_nb <- st_contiguity(hexagon)
 hexagon_wt <- nb2listw(hexagon_nb, style = "W", zero.policy = TRUE)
 ```
+
+Computes permutation-based Local Getis-Ord Gi∗ hot spot statistics for passenger trips across each peak period, aggregating results for spatial-temporal hotspot analysis.
 
 ```{r}
 gi_results_list <- list()
@@ -321,6 +371,8 @@ for (p in unique(hexagon_trips_st$PERIOD)) {
 gi_results <- bind_rows(gi_results_list)
 ```
 
+Assesses temporal trends in hotspot intensity per hexagon using Kendall’s tau correlation across ordered peak periods (morning, afternoon, weekend).
+
 ```{r}
 gi_results$PERIOD <- factor(gi_results$PERIOD,
                             levels = c("TRIPS_MORNING_PEAK",
@@ -336,6 +388,8 @@ mk_results <- gi_results %>%
     p_value = Kendall(as.numeric(PERIOD), gi_star)$sl
   )
 ```
+
+Maps the spatial pattern of temporal trends in local hotspot intensity across hexagons, highlighting increasing or decreasing trends in passenger trips over peak periods.
 
 ```{r}
 gi_mk_sf <- hexagon %>%
@@ -358,6 +412,8 @@ Red hexagons indicate areas where local clustering of bus trips is decreasing wh
 Blue hexagons show places with an increasing trend in local clustering across these temporal segments. Such blue-dominant regions are seeing bus trip activity that becomes more spatially concentrated in certain periods.
 
 Overall, these patterns reveal how Singapore’s bus network supports both mature, well-connected districts and newly developing regions where transit demand is growing or becoming highly periodic. For transport policy, this means simultaneously optimising core routes and proactively scaling up service in emerging hot spots identified by temporal shifts in spatial clustering.
+
+Performs a permutation test-based Local Getis-Ord Gi∗ hotspot analysis for each temporal peak period, compiling hotspot scores and significance values for spatial-temporal hotspot mapping.
 
 ```{r}
 gi_results_list <- list()
@@ -384,15 +440,21 @@ for (p in unique(hexagon_trips_st$PERIOD)) {
 gi_results <- bind_rows(gi_results_list)
 ```
 
+Selects hexagons with statistically significant Local Getis-Ord hotspots, indicating meaningful spatial clustering of passenger trips.
+
 ```{r}
 gi_results_sig <- gi_results %>%
   filter(p_value < 0.05)
 ```
 
+Attaches statistically significant Local Getis-Ord Gi∗ hotspot results to hexagonal spatial polygons for mapping and further spatial analysis.
+
 ```{r}
 gi_sf <- hexagon %>%
   left_join(gi_results_sig, by = "HEX_ID")
 ```
+
+This map visualizes significant morning peak hot and cold spots of passenger trips using Local Gi* statistics, overlaying coloured hexagons on base polygons for spatial context.
 
 ```{r}
 tm_shape(mpsz) +
@@ -417,6 +479,8 @@ There are almost no significant cold spots (blue), implying that low-volume or n
 
 These results indicate a public bus system where pronounced morning peak demand is spatially localised. Key commuter towns surface as persistent hot spots due to their residential density and strong outbound flows, but system-wide, morning congestion is broadly distributed rather than sharply concentrated. This pattern supports prioritising supply adjustments, such as express service deployment, primarily in residential clusters. Peripheral and less developed regions do not form significant clusters, meaning interventions there can be deprioritised without risk of missing hidden demand hotspots.
 
+This map highlights spatial clusters of significant hot and cold spots for afternoon peak passenger trips, visualised through Local Getis-Ord Gi* statistics on hexagonal polygons.
+
 ```{r}
 tm_shape(mpsz) +
   tm_polygons() +
@@ -439,6 +503,8 @@ Afternoon hot spot intensities are moderate (mostly 1–4, a few up to 5), indic
 There are no statistically significant cold spots. This points to the background level of afternoon trips being widespread but failing to form strong, low-volume clusters at the spatial scale used.
 
 The map demonstrates that afternoon peak demand is not only persistent but distributed across multiple mature residential areas, with slightly intensified clustering compared to the morning. This reflects the more staggered and diverse dispersal of passengers returning home, as well as sustained demand around major neighbourhood interchange points. Strategic improvements (bus frequency, capacity allocation, and even dynamic route planning) would have maximum impact in these cluster zones, particularly as work and school release schedules continue to diversify mode and timing of travel. Peripheral and less developed zones again remain outside of statistically robust clusters, consistently supporting a focus on the main heartlands for afternoon peak interventions.
+
+This map highlights spatial clusters of significant hot and cold passenger trip spots during weekends/holidays, visualised through Local Getis-Ord Gi* statistics on hexagons overlaid on base polygons.
 
 ```{r}
 tm_shape(mpsz) +

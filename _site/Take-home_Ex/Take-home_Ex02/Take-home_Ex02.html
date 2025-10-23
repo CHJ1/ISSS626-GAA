@@ -293,6 +293,7 @@ Projected CRS: SVY21</code></pre>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>odbus <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/LTADataMall/origin_destination_bus_202508.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>Plots polygons from mpsz and overlays bus stop points from BusStop on the same map.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(mpsz) <span class="sc">+</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>() <span class="sc">+</span></span>
@@ -306,12 +307,14 @@ Projected CRS: SVY21</code></pre>
 </div>
 </div>
 </div>
+<p>Selects bus stops located within mpsz polygons, returning only those points with polygon attributes.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>BusStop_in_SG <span class="ot">&lt;-</span> <span class="fu">st_join</span>(</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  BusStop, mpsz,</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">join =</span> st_within,</span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">left =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>Maps polygons from mpsz and overlays bus stops located within them from BusStop_in_SG as points.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(mpsz) <span class="sc">+</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>() <span class="sc">+</span></span>
@@ -325,6 +328,7 @@ Projected CRS: SVY21</code></pre>
 </div>
 </div>
 </div>
+<p>Generates a hexagonal grid of 750-unit cell size covering the extent of mpsz, returned as an sf polygon object.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>hexagon <span class="ot">&lt;-</span> <span class="fu">st_make_grid</span>(mpsz,</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>                        <span class="at">cellsize =</span> <span class="dv">750</span>,</span>
@@ -332,6 +336,7 @@ Projected CRS: SVY21</code></pre>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>                        <span class="at">square =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_sf</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>Counts the number of bus stops in each hexagon and keeps only hexagons containing bus stops.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>hexagon<span class="sc">$</span>n_collisions <span class="ot">=</span> </span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lengths</span>(<span class="fu">st_intersects</span>(</span>
@@ -339,6 +344,7 @@ Projected CRS: SVY21</code></pre>
 <span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>hexagon <span class="ot">&lt;-</span> <span class="fu">filter</span>(hexagon, n_collisions <span class="sc">&gt;</span> <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>Drops the n_collisions column, adds a formatted hexagon ID as a factor, and displays the first few rows.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>hexagon <span class="ot">&lt;-</span> hexagon <span class="sc">%&gt;%</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(, <span class="sc">-</span>n_collisions)</span>
@@ -385,6 +391,7 @@ Projected CRS: SVY21</code></pre>
 </table>
 </div>
 </div>
+<p>Selects and renames trip data columns, converts bus stop code to a factor, and displays the first rows.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>trips <span class="ot">&lt;-</span> odbus <span class="sc">%&gt;%</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">c</span>(ORIGIN_PT_CODE, DAY_TYPE, TIME_PER_HOUR, TOTAL_TRIPS)) <span class="sc">%&gt;%</span></span>
@@ -444,6 +451,7 @@ Projected CRS: SVY21</code></pre>
 </table>
 </div>
 </div>
+<p>Finds bus stops located in each hexagon, retains only bus stop and hexagon ID columns, and shows the first few rows.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>bs_hex <span class="ot">&lt;-</span> <span class="fu">st_intersection</span>(</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  BusStop, hexagon) <span class="sc">%&gt;%</span></span>
@@ -494,6 +502,7 @@ Projected CRS: SVY21</code></pre>
 </table>
 </div>
 </div>
+<p>Merges trip data with hexagon IDs by matching bus stop codes, keeping only matching rows, and shows the first rows.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>trips <span class="ot">&lt;-</span> <span class="fu">inner_join</span>(trips, bs_hex)</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(<span class="fu">head</span>(trips))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -555,6 +564,7 @@ Projected CRS: SVY21</code></pre>
 </table>
 </div>
 </div>
+<p>Filters trips for weekday mornings (6-9am), groups by hexagon, and sums trips per hexagon.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Weekday morning peak trips (6am-9am)</span></span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>weekday_morning_peak <span class="ot">&lt;-</span> trips <span class="sc">%&gt;%</span></span>
@@ -563,6 +573,7 @@ Projected CRS: SVY21</code></pre>
 <span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(HEX_ID) <span class="sc">%&gt;%</span></span>
 <span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">TRIPS_MORNING_PEAK =</span> <span class="fu">sum</span>(TRIPS))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>Filters trips for weekday afternoons (5-8pm), groups by hexagon, and sums trips per hexagon to get afternoon peak totals.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Weekday afternoon peak trips (5pm-8pm)</span></span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>weekday_afternoon_peak <span class="ot">&lt;-</span> trips <span class="sc">%&gt;%</span></span>
@@ -571,6 +582,7 @@ Projected CRS: SVY21</code></pre>
 <span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(HEX_ID) <span class="sc">%&gt;%</span></span>
 <span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">TRIPS_AFTERNOON_PEAK =</span> <span class="fu">sum</span>(TRIPS))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>Filters trips for weekends/holidays (11am-8pm), groups by hexagon, and sums trips to get weekend/holiday peak totals per hexagon.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Weekend/holiday trips (11am-8pm)</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>weekend_holiday_peak <span class="ot">&lt;-</span> trips <span class="sc">%&gt;%</span></span>
@@ -579,6 +591,7 @@ Projected CRS: SVY21</code></pre>
 <span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(HEX_ID) <span class="sc">%&gt;%</span></span>
 <span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">TRIPS_WEEKEND_HOLIDAY =</span> <span class="fu">sum</span>(TRIPS))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>Combines peak trip data across time periods into one table, filling missing values with zero.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine results</span></span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>trips_by_peak <span class="ot">&lt;-</span> <span class="fu">full_join</span>(weekday_morning_peak, weekday_afternoon_peak, <span class="at">by =</span> <span class="st">"HEX_ID"</span>) <span class="sc">%&gt;%</span></span>
@@ -606,16 +619,19 @@ Projected CRS: SVY21</code></pre>
 # ℹ 814 more rows</code></pre>
 </div>
 </div>
+<p>Aggregates total trips per hexagon by summing trips grouped by HEX_ID.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>trips_by_hex <span class="ot">&lt;-</span> trips <span class="sc">%&gt;%</span></span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(HEX_ID) <span class="sc">%&gt;%</span></span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">TOTAL_TRIPS =</span> <span class="fu">sum</span>(TRIPS))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>Joins total trip counts to each hexagon, filling missing values with zero.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>hexagon_trips <span class="ot">&lt;-</span> hexagon <span class="sc">%&gt;%</span></span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(trips_by_hex, <span class="at">by =</span> <span class="st">"HEX_ID"</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">replace_na</span>(<span class="fu">list</span>(<span class="at">TOTAL_TRIPS =</span> <span class="dv">0</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>Displays a thematic map with hexagon polygons colored by total trips, bus stops as blue dots, and base boundaries for spatial context.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(mpsz) <span class="sc">+</span></span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>() <span class="sc">+</span></span>
@@ -636,6 +652,7 @@ Projected CRS: SVY21</code></pre>
 </div>
 </div>
 <p>The geovisualisation displays passenger bus trip densities across Singapore using a hexagonal spatial aggregation. High concentrations of trips are visualised in deep red hexagons, which cluster predominantly within central and eastern regions, signifying areas of intense bus usage likely corresponding to commercial hubs, dense residential zones, or key transport corridors. Outlying regions exhibit lighter shades, indicating fewer trips, with peripheral or industrial areas including the western and northern edges showing noticeably less activity. The distribution highlights a clear urban core with substantial public transport reliance, tapering off towards the outskirts. Bus stop locations, mapped as blue dots, are tightly packed in high-density hexagons and more dispersed in low-density areas, supporting the spatial association between bus stop concentration and passenger volume.</p>
+<p>Computes neighbour contiguity and spatial weights for hexagons, attaching the weights list to the data for spatial modeling.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>wm_q <span class="ot">&lt;-</span> hexagon_trips <span class="sc">%&gt;%</span></span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">nb =</span> <span class="fu">st_contiguity</span>(geometry),</span>
@@ -645,6 +662,7 @@ Projected CRS: SVY21</code></pre>
 <span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>wm_q<span class="sc">$</span>wt <span class="ot">&lt;-</span> <span class="fu">list</span>(wt) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>Summarizes the spatial neighbours list, showing counts and statistics of polygon adjacency relationships for quality assessment</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(wm_q<span class="sc">$</span>nb)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -666,6 +684,7 @@ Link number distribution:
 10 23 25 26 30 32 33 36 39 42 45 47 48 50 54 56 57 59 64 65 68 72 73 74 78 81 83 84 86 91 92 93 99 100 101 102 108 109 110 115 116 117 121 122 123 128 129 130 132 133 134 138 139 140 144 151 153 160 165 169 170 171 179 181 183 189 192 198 199 200 201 204 209 210 218 220 221 222 232 233 234 238 239 241 242 244 246 252 253 258 259 262 263 264 268 271 274 275 281 282 283 284 290 293 294 298 301 302 303 305 306 308 309 310 315 318 319 323 324 327 333 336 337 340 341 346 350 351 355 356 361 362 364 365 366 372 373 375 376 381 382 384 385 386 390 393 394 400 403 404 405 412 415 416 425 427 428 429 437 438 440 441 442 443 452 455 456 457 458 461 462 465 470 471 473 478 479 481 482 484 485 488 489 492 493 496 499 500 501 502 503 504 505 506 508 511 514 515 516 517 518 523 524 526 527 528 529 530 534 535 536 537 538 539 540 541 544 546 547 548 549 550 551 559 560 561 562 563 564 571 572 573 574 575 581 582 583 584 585 591 592 593 594 596 597 602 603 604 607 608 611 612 613 614 615 616 619 620 621 622 625 627 628 629 630 631 633 634 636 637 638 639 640 641 642 646 647 648 649 650 651 652 653 655 656 657 658 659 661 662 663 666 667 668 672 673 674 677 678 681 683 684 686 687 688 692 693 695 696 699 700 702 703 704 708 711 712 713 718 719 723 724 725 728 729 734 735 736 741 742 743 744 748 749 750 751 754 755 756 759 760 761 762 766 767 768 769 770 772 773 774 775 776 779 780 781 782 785 786 787 788 790 791 792 794 795 796 801 802 805 with 6 links</code></pre>
 </div>
 </div>
+<p>Computes Local Moran’s I for trips with Monte Carlo permutation testing to identify significant spatial autocorrelation.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -697,6 +716,7 @@ Link number distribution:
 6 0.3824659 -0.0004420461 0.09179368 1.2638279      0.2062918   0.4352518</code></pre>
 </div>
 </div>
+<p>Maps Local Moran’s I values for passenger trips by hexagon, highlighting spatial clustering patterns with a diverging colour scale and base boundaries for context.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>result_sf <span class="ot">&lt;-</span> wm_q <span class="sc">%&gt;%</span></span>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">local_moran_I =</span> observed[,<span class="dv">1</span>],</span>
@@ -724,6 +744,7 @@ Link number distribution:
 <p>The Local Moran’s I map, using Queen’s contiguity for hexagonal zones, identifies the spatial clustering of bus passenger trip counts across Singapore. Most hexagons are shaded in light hues (0 to 2), indicating that localised clustering of trip volumes is generally modest. Pockets of moderate positive Local Moran’s I (values 2–6, blue shades) are mainly observed in central Singapore and eastern zone, suggesting the presence of spatial clusters—areas where high trip counts are surrounded by similar high values, likely highlighting the dense urban core and possibly major transport corridors.</p>
 <p>Conversely, many peripheral and central hexagons exhibit low or even negative Local Moran’s I, revealing either spatial randomness or potential outliers. Overall, the pattern demonstrates that while much of Singapore shows only mild local spatial autocorrelation in bus trip densities, there are distinct, notable spatial clusters where passenger volumes are consistently high.</p>
 <p>Recommendation: Urban planners should further investigate the reasons behind low clustering of bus passenger trips in areas shaded orange, such as Jurong East, Central, and eastern regions. These are highly developed zones with substantial residential populations and high footfall, so the presence of clusters with low bus trip volumes may indicate that existing bus routes are not adequately serving residents’ travel needs. It is possible that people are not using buses because the current routes do not align with their desired destinations or travel patterns. Similarly, in the northern regions, clusters of low passenger trips could signal that bus services are inconvenient. Planners should therefore review and optimise bus routes, frequencies, and connectivity in these areas to better match commuter demand and improve the overall convenience and attractiveness of bus travel.</p>
+<p>Visualizes spatial significance of Local Moran’s I for passenger trips, showing areas of significant spatial clustering using a colour-coded p-value map.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(mpsz) <span class="sc">+</span></span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>() <span class="sc">+</span></span>
@@ -745,6 +766,7 @@ Link number distribution:
 </div>
 <p>This choropleth map visualises the statistical significance of spatial clusters in passenger bus trip counts, using Local Moran’s I p-values. The vast majority of hexagonal zones across Singapore are shaded in red, representing p-values 0.100 or more. This indicates that, for most areas, there is no statistically significant local spatial autocorrelation of bus trip densities. Only a small number of hexagons, concentrated around the Changi area, shows blue shading (p-values less than 0.01), meaning these zones have highly significant clustering of passenger trips and are unlikely to be random.</p>
 <p>Overall, this map demonstrates that genuine hotspots of spatial clustering in bus trip activity are rare, localised mostly around the Changi area, while most of Singapore’s hexagonal areas do not exhibit strong, statistically significant local clustering of passenger volumes.</p>
+<p>Maps hexagons with significant Local Moran’s I p-values, highlighting spatial clusters of passenger trips with a focused red-scale colour scheme.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>significant_result_sf <span class="ot">&lt;-</span> result_sf <span class="sc">%&gt;%</span> <span class="fu">filter</span>(p_value_sim <span class="sc">&lt;</span> <span class="fl">0.05</span>)</span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -769,6 +791,7 @@ Link number distribution:
 <p>This choropleth map highlights only those hexagonal zones where the Local Moran’s I p-value is below 0.05, meaning statistically significant spatial clustering of bus passenger trips. The results show just a handful of hexagons, concentrated mostly around the Changi area, that display this level of significance. The rest of the map remains unshaded, indicating no meaningful local clustering elsewhere. These flagged hexagons likely correspond to exceptionally active transport nodes, where high passenger volumes form clearly defined spatial clusters, rather than being randomly distributed.</p>
 <p>Statistically, this result underscores that meaningful bus trip hotspots are rare and highly localised. Despite Singapore’s extensive transit system, only a few zones demonstrate pronounced clustering at a rigorous significance cutoff.</p>
 <p>Recommendation: Significant spatial clustering, as detected in the Changi area, indicates that these areas have a consistent pattern of bus usage that is higher than would be expected by chance, even if the absolute number of trips is not the highest. This suggests a stable, potentially underserved commuter base that could respond positively to better service. Planners should prioritise increasing service frequency, improving infrastructure, and expanding connectivity in these active transport nodes to accommodate and encourage further public transport use in these critical areas.</p>
+<p>Prepares peak trip data by hexagon for spatial-temporal analysis by joining, pivoting to long format, and reattaching to spatial polygons.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>trips_by_peak_full <span class="ot">&lt;-</span> hexagon <span class="sc">%&gt;%</span></span>
 <span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_drop_geometry</span>() <span class="sc">%&gt;%</span></span>
@@ -791,10 +814,12 @@ Link number distribution:
 <span id="cb31-19"><a href="#cb31-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(trips_st, <span class="at">by =</span> <span class="st">"HEX_ID"</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb31-20"><a href="#cb31-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">replace_na</span>(<span class="fu">list</span>(<span class="at">TRIPS =</span> <span class="dv">0</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>Calculates local spatial autocorrelation with permutation testing, producing p-values for passenger trips across hexagons.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>hexagon_nb <span class="ot">&lt;-</span> <span class="fu">st_contiguity</span>(hexagon)</span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>hexagon_wt <span class="ot">&lt;-</span> <span class="fu">nb2listw</span>(hexagon_nb, <span class="at">style =</span> <span class="st">"W"</span>, <span class="at">zero.policy =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>Computes permutation-based Local Getis-Ord Gi∗ hot spot statistics for passenger trips across each peak period, aggregating results for spatial-temporal hotspot analysis.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>gi_results_list <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
 <span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -819,6 +844,7 @@ Link number distribution:
 <span id="cb33-21"><a href="#cb33-21" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb33-22"><a href="#cb33-22" aria-hidden="true" tabindex="-1"></a>gi_results <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(gi_results_list)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>Assesses temporal trends in hotspot intensity per hexagon using Kendall’s tau correlation across ordered peak periods (morning, afternoon, weekend).</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>gi_results<span class="sc">$</span>PERIOD <span class="ot">&lt;-</span> <span class="fu">factor</span>(gi_results<span class="sc">$</span>PERIOD,</span>
 <span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>                            <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"TRIPS_MORNING_PEAK"</span>,</span>
@@ -2504,6 +2530,7 @@ WARNING: Error exit, tauk2. IFAULT =  12
 WARNING: Error exit, tauk2. IFAULT =  12</code></pre>
 </div>
 </div>
+<p>Maps the spatial pattern of temporal trends in local hotspot intensity across hexagons, highlighting increasing or decreasing trends in passenger trips over peak periods.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>gi_mk_sf <span class="ot">&lt;-</span> hexagon <span class="sc">%&gt;%</span></span>
 <span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(mk_results, <span class="at">by =</span> <span class="st">"HEX_ID"</span>)</span>
@@ -2529,6 +2556,7 @@ WARNING: Error exit, tauk2. IFAULT =  12</code></pre>
 <p>Red hexagons indicate areas where local clustering of bus trips is decreasing when moving from the morning to afternoon to weekend/holiday periods. In urban zones such as Kallang, this suggests that consistently high passenger clustering during one period (e.g., the morning commute) becomes less pronounced as travel demand diversifies across the rest of the day and into weekends. Possible explanations include shifting commuter behaviours that distribute demand more evenly across time-periods.</p>
 <p>Blue hexagons show places with an increasing trend in local clustering across these temporal segments. Such blue-dominant regions are seeing bus trip activity that becomes more spatially concentrated in certain periods.</p>
 <p>Overall, these patterns reveal how Singapore’s bus network supports both mature, well-connected districts and newly developing regions where transit demand is growing or becoming highly periodic. For transport policy, this means simultaneously optimising core routes and proactively scaling up service in emerging hot spots identified by temporal shifts in spatial clustering.</p>
+<p>Performs a permutation test-based Local Getis-Ord Gi∗ hotspot analysis for each temporal peak period, compiling hotspot scores and significance values for spatial-temporal hotspot mapping.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>gi_results_list <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
 <span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -2553,14 +2581,17 @@ WARNING: Error exit, tauk2. IFAULT =  12</code></pre>
 <span id="cb37-21"><a href="#cb37-21" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb37-22"><a href="#cb37-22" aria-hidden="true" tabindex="-1"></a>gi_results <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(gi_results_list)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>Selects hexagons with statistically significant Local Getis-Ord hotspots, indicating meaningful spatial clustering of passenger trips.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>gi_results_sig <span class="ot">&lt;-</span> gi_results <span class="sc">%&gt;%</span></span>
 <span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(p_value <span class="sc">&lt;</span> <span class="fl">0.05</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>Attaches statistically significant Local Getis-Ord Gi∗ hotspot results to hexagonal spatial polygons for mapping and further spatial analysis.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>gi_sf <span class="ot">&lt;-</span> hexagon <span class="sc">%&gt;%</span></span>
 <span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(gi_results_sig, <span class="at">by =</span> <span class="st">"HEX_ID"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>This map visualizes significant morning peak hot and cold spots of passenger trips using Local Gi* statistics, overlaying coloured hexagons on base polygons for spatial context.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(mpsz) <span class="sc">+</span></span>
 <span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>() <span class="sc">+</span></span>
@@ -2586,6 +2617,7 @@ WARNING: Error exit, tauk2. IFAULT =  12</code></pre>
 <p>The Gi* statistic for most significant clusters remains moderate (0-4), suggesting that while these areas experience reliably elevated passenger trips, the spatial clustering is not extreme or highly isolated. Instead, the activity is more diffuse, likely due to a generally well-distributed network of bus origin points across the city.</p>
 <p>There are almost no significant cold spots (blue), implying that low-volume or non-clustered morning peak bus trip zones do not form statistically robust clusters at the hexagonal scale and significance threshold used. This hints at a background of widely distributed, moderate use rather than clear zones of under-utilisation in the morning peak.</p>
 <p>These results indicate a public bus system where pronounced morning peak demand is spatially localised. Key commuter towns surface as persistent hot spots due to their residential density and strong outbound flows, but system-wide, morning congestion is broadly distributed rather than sharply concentrated. This pattern supports prioritising supply adjustments, such as express service deployment, primarily in residential clusters. Peripheral and less developed regions do not form significant clusters, meaning interventions there can be deprioritised without risk of missing hidden demand hotspots.</p>
+<p>This map highlights spatial clusters of significant hot and cold spots for afternoon peak passenger trips, visualised through Local Getis-Ord Gi* statistics on hexagonal polygons.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(mpsz) <span class="sc">+</span></span>
 <span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>() <span class="sc">+</span></span>
@@ -2611,6 +2643,7 @@ WARNING: Error exit, tauk2. IFAULT =  12</code></pre>
 <p>Afternoon hot spot intensities are moderate (mostly 1–4, a few up to 5), indicating that while statistically significant, the clustering is not extremely sharp or isolated. This is typical for homebound commuter flows, where activities (e.g., staggered work/school release times, errand trips) occur over a broader window than the tightly synchronised morning rush.</p>
 <p>There are no statistically significant cold spots. This points to the background level of afternoon trips being widespread but failing to form strong, low-volume clusters at the spatial scale used.</p>
 <p>The map demonstrates that afternoon peak demand is not only persistent but distributed across multiple mature residential areas, with slightly intensified clustering compared to the morning. This reflects the more staggered and diverse dispersal of passengers returning home, as well as sustained demand around major neighbourhood interchange points. Strategic improvements (bus frequency, capacity allocation, and even dynamic route planning) would have maximum impact in these cluster zones, particularly as work and school release schedules continue to diversify mode and timing of travel. Peripheral and less developed zones again remain outside of statistically robust clusters, consistently supporting a focus on the main heartlands for afternoon peak interventions.</p>
+<p>This map highlights spatial clusters of significant hot and cold passenger trip spots during weekends/holidays, visualised through Local Getis-Ord Gi* statistics on hexagons overlaid on base polygons.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(mpsz) <span class="sc">+</span></span>
 <span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>() <span class="sc">+</span></span>
