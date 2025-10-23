@@ -13,7 +13,7 @@ execute:
 Loading the package
 
 ```{r}
-pacman::p_load(sf, sfdep, tmap, tidyverse, knitr, dplyr, spdep)
+pacman::p_load(sf, sfdep, tmap, tidyverse, knitr, dplyr, spdep, Kendall)
 ```
 
 Preparing the Data
@@ -267,6 +267,171 @@ This choropleth map highlights only those hexagonal zones where the Local Moran'
 Statistically, this result underscores that meaningful bus trip hotspots are rare and highly localised. Despite Singapore’s extensive transit system, only a few zones demonstrate pronounced clustering at a rigorous significance cutoff. 
 
 Recommendation: Significant spatial clustering, as detected in the Changi area, indicates that these areas have a consistent pattern of bus usage that is higher than would be expected by chance, even if the absolute number of trips is not the highest. This suggests a stable, potentially underserved commuter base that could respond positively to better service. Planners should prioritise increasing service frequency, improving infrastructure, and expanding connectivity in these active transport nodes to accommodate and encourage further public transport use in these critical areas.
+
+```{r}
+trips_by_peak_full <- hexagon %>%
+  st_drop_geometry() %>%
+  select(HEX_ID) %>%
+  left_join(trips_by_peak, by = "HEX_ID") %>%
+  replace_na(list(
+    TRIPS_MORNING_PEAK = 0,
+    TRIPS_AFTERNOON_PEAK = 0,
+    TRIPS_WEEKEND_HOLIDAY = 0
+  ))
+
+trips_st <- trips_by_peak_full %>%
+  pivot_longer(
+    cols = c(TRIPS_MORNING_PEAK, TRIPS_AFTERNOON_PEAK, TRIPS_WEEKEND_HOLIDAY),
+    names_to = "PERIOD",
+    values_to = "TRIPS"
+  )
+
+hexagon_trips_st <- hexagon %>%
+  left_join(trips_st, by = "HEX_ID") %>%
+  replace_na(list(TRIPS = 0))
+```
+
+```{r}
+hexagon_nb <- st_contiguity(hexagon)
+hexagon_wt <- nb2listw(hexagon_nb, style = "W", zero.policy = TRUE)
+```
+
+```{r}
+gi_results_list <- list()
+
+for (p in unique(hexagon_trips_st$PERIOD)) {
+  df_p <- subset(hexagon_trips_st, PERIOD == p)
+  
+  stopifnot(nrow(df_p) == length(hexagon_nb))
+  
+  gi_vals <- local_gstar_perm(
+    df_p$TRIPS,
+    hexagon_nb,
+    hexagon_wt,
+    zero.policy = TRUE
+  )[, 1]
+  
+  gi_results_list[[p]] <- data.frame(
+    HEX_ID = df_p$HEX_ID,
+    PERIOD = p,
+    gi_star = gi_vals
+  )
+}
+
+gi_results <- bind_rows(gi_results_list)
+```
+
+```{r}
+gi_results$PERIOD <- factor(gi_results$PERIOD,
+                            levels = c("TRIPS_MORNING_PEAK",
+                                       "TRIPS_AFTERNOON_PEAK",
+                                       "TRIPS_WEEKEND_HOLIDAY"),
+                            labels = c("Morning", "Afternoon", "Weekend"),
+                            ordered = TRUE)
+
+mk_results <- gi_results %>%
+  group_by(HEX_ID) %>%
+  summarise(
+    tau = Kendall(as.numeric(PERIOD), gi_star)$tau,
+    p_value = Kendall(as.numeric(PERIOD), gi_star)$sl
+  )
+```
+
+```{r}
+gi_mk_sf <- hexagon %>%
+  left_join(mk_results, by = "HEX_ID")
+
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(gi_mk_sf) +
+  tm_polygons("tau",
+              palette = "RdBu",
+              midpoint = 0,
+              style = "pretty",
+              title = "Mann–Kendall Tau (Gi* Trend)") +
+  tm_borders(alpha = 0.5) +
+  tm_title("Spatio-Temporal Trend of Local Gi* Values (Passenger Trips)")
+```
+
+```{r}
+gi_results_list <- list()
+
+for (p in unique(hexagon_trips_st$PERIOD)) {
+  df_p <- subset(hexagon_trips_st, PERIOD == p)
+  
+  gi_obj <- local_gstar_perm(
+    df_p$TRIPS,
+    hexagon_nb,
+    hexagon_wt,
+    zero.policy = TRUE,
+    nsim = 99
+  )
+  
+  gi_results_list[[p]] <- data.frame(
+    HEX_ID = df_p$HEX_ID,
+    PERIOD = p,
+    gi_star = gi_obj[, "gi_star"],
+    p_value = gi_obj[, "p_value"]
+  )
+}
+
+gi_results <- bind_rows(gi_results_list)
+```
+
+```{r}
+gi_results_sig <- gi_results %>%
+  filter(p_value < 0.05)
+```
+
+```{r}
+gi_sf <- hexagon %>%
+  left_join(gi_results_sig, by = "HEX_ID")
+```
+
+```{r}
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(filter(gi_sf, PERIOD == "TRIPS_MORNING_PEAK")) +
+  tm_polygons(
+    "gi_star",
+    palette = "-RdBu",
+    style = "pretty",
+    midpoint = 0,
+    title = "Morning Peak Gi* (p < 0.05)"
+  ) +
+  tm_borders(alpha = 0.4) +
+  tm_title("EHSA: Morning Peak Significant Hot/Cold Spots")
+```
+
+```{r}
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(filter(gi_sf, PERIOD == "TRIPS_AFTERNOON_PEAK")) +
+  tm_polygons(
+    "gi_star",
+    palette = "-RdBu",
+    style = "pretty",
+    midpoint = 0,
+    title = "Afternoon Peak Gi* (p < 0.05)"
+  ) +
+  tm_borders(alpha = 0.4) +
+  tm_title("EHSA: Afternoon Peak Significant Hot/Cold Spots")
+```
+
+```{r}
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(filter(gi_sf, PERIOD == "TRIPS_WEEKEND_HOLIDAY")) +
+  tm_polygons(
+    "gi_star",
+    palette = "-RdBu",
+    style = "pretty",
+    midpoint = 0,
+    title = "Weekend/Holiday Gi* (p < 0.05)"
+  ) +
+  tm_borders(alpha = 0.4) +
+  tm_title("EHSA: Weekend/Holiday Significant Hot/Cold Spots")
+```
 
 
 
