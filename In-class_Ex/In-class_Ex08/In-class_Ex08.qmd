@@ -1,0 +1,87 @@
+---
+title: "In-class_Ex08"
+author: "CHJ1"
+---
+
+```{r}
+pacman::p_load(httr, tidyverse, sf, tmap, jsonlite, progress, dplyr)
+```
+
+Geocoding HDB resale data
+
+Basic version
+
+```{r}
+HDBresale <- read_csv(
+  "data/rawdata/HDBresale.csv") %>%
+  filter(flat_type == "4 ROOM") %>%
+  filter(month >= "2025-09" & month <
+"2025-10")
+```
+
+```{r}
+HDBresale$street_name <- gsub(
+  "ST\\.", "SAINT",
+  HDBresale$street_name)
+```
+
+```{r}
+geocode <- function(block, streetname) {
+  base_url <- "https://onemap.gov.sg/api/common/elastic/search"
+  address <- paste(block, streetname, sep = " ")
+  query <- list("searchval" = address,
+                "returnGeom" = "Y",
+                "getAddrDetails" = "N",
+                "pageNum" = "1")
+
+  res <- GET(base_url, query = query)
+  restext<-content(res, as="text")
+
+  data <- fromJSON(restext)
+  if (length(data$results) == 0) {
+    return(data.frame(LATITUDE = NA, LONGITUDE = NA))
+  }
+  
+  output <- data.frame(
+    LATITUDE = as.numeric(data$results[[1]]$LATITUDE),
+    LONGITUDE = as.numeric(data$results[[1]]$LONGITUDE)
+  )
+  return(output)
+}
+```
+
+```{r}
+HDBresale$LATITUDE <- 0
+HDBresale$LONGITUDE <- 0
+
+for (i in 1:nrow(HDBresale)){
+  temp_output <- geocode(HDBresale[i, 4], HDBresale[i, 5])
+
+  HDBresale$LATITUDE[i] <- temp_output$LATITUDE
+  HDBresale$LONGITUDE[i] <- temp_output$LONGITUDE
+}
+```
+
+```{r}
+HDBresale_sf <- HDBresale %>%
+  filter(!is.na(LATITUDE) & !is.na(LONGITUDE)) %>%
+  st_as_sf(
+    coords = c("LONGITUDE", "LATITUDE"),
+    crs = 4326
+  ) %>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+preschool = st_read("data/rawdata/PreSchoolsLocation.kml"
+) %>% st_transform(crs= 3414)
+```
+
+```{r}
+within_350m <- st_is_within_distance(
+  HDBresale_sf, preschool, dist = 350)
+
+HDBresale_sf <- HDBresale_sf %>% 
+  mutate(prischool_350m = map_int(within_350m, length))
+```
+

@@ -1,0 +1,42 @@
+---
+title: "In-class_Ex07"
+author: "CHJ1"
+---
+
+Calibrating Hedonic Pricing Model for Private Highrise Property with GWR Method
+
+Getting Started
+
+```{r}
+pacman::p_load(sf, spdep, GWmodel, SpatialML, tmap,rsample, Metrics, tidyverse, knitr, kableExtra, spatialRF, randomForestExplainer)
+```
+
+```{r}
+set.seed(1234)
+HDB_sample <- mdata %>%
+sample_n(1500)
+```
+
+```{r}
+overlapping_points <- HDB_sample %>%
+mutate(overlap = lengths(st_equals(., .)) > 1)
+```
+
+```{r}
+HDB_sample <- HDB_sample %>%
+st_jitter(amount = 1)
+```
+
+```{r}
+set.seed(1234)
+resale_split <- initial_split(HDB_sample,
+prop = 6.67/10,)
+train_data <- training(resale_split)
+test_data <- testing(resale_split)
+```
+
+
+| eval: false
+bw_adaptive <- bw.gwr(resale_price ~ floor_area_sqm +
+)
+
