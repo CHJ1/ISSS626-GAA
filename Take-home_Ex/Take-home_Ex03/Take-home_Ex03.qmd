@@ -1,0 +1,377 @@
+---
+title: "Take-home_Ex03"
+author: "CHJ1"
+---
+
+Installing Packages
+
+```{r}
+pacman::p_load(httr, tidyverse, sf, tmap, 
+               jsonlite, progress, dplyr)
+```
+
+Geocoding HDB Resale Data
+
+Select Data of Interest
+
+```{r}
+HDBresale <- read_csv(
+  "data/aspatial/HDBresale.csv") %>%
+  filter(flat_type == "5 ROOM") %>%
+  filter(month >= "2025-01" & month <= "2025-09")
+```
+
+```{r}
+geocode <- function(block, streetname) {
+  base_url <- "https://onemap.gov.sg/api/common/elastic/search"
+  address <- paste(block, streetname, sep = " ")
+  query <- list("searchVal" = address, 
+                "returnGeom" = "Y",
+                "getAddrDetails" = "N",
+                "pageNum" = "1")
+  
+  res <- GET(base_url, query = query)
+  restext<-content(res, as="text")
+  
+  output <- fromJSON(restext)  %>% 
+    as.data.frame %>%
+    select(results.LATITUDE, results.LONGITUDE)
+
+  return(output)
+}
+```
+
+```{r}
+HDBresale$LATITUDE <- 0
+HDBresale$LONGITUDE <- 0
+
+for (i in 1:nrow(HDBresale)){
+  temp_output <- geocode(HDBresale[i, 4], HDBresale[i, 5])
+  
+  HDBresale$LATITUDE[i] <- temp_output$results.LATITUDE
+  HDBresale$LONGITUDE[i] <- temp_output$results.LONGITUDE
+}
+```
+
+Converting HDBresale to an sf object
+
+```{r}
+HDBresale_sf <- HDBresale %>%
+  st_as_sf(
+    coords = c("LONGITUDE", "LATITUDE"),
+    crs=4326) %>%
+  st_transform(crs = 3414)
+```
+
+Import Preschool Location data
+
+```{r}
+preschool = st_read(
+  "data/aspatial/PreSchoolsLocation.kml") %>%
+  st_transform(crs= 3414)
+```
+
+Counting number of preschools
+
+```{r}
+prischool_within_1000m <- st_is_within_distance(
+  HDBresale_sf, preschool, dist = 1000)
+
+HDBresale_sf <- HDBresale_sf %>%
+  mutate(prischool_within_1000m = map_int(prischool_within_1000m, length))
+```
+
+Import Childcare Location data
+
+```{r}
+childcare = st_read(
+  "data/aspatial/ChildCareServices.kml") %>%
+  st_transform(crs= 3414)
+```
+
+Counting number of childcare
+
+```{r}
+childcare_within_350m <- st_is_within_distance(
+  HDBresale_sf, childcare, dist = 350)
+
+HDBresale_sf <- HDBresale_sf %>%
+  mutate(childcare_within_350m = map_int(childcare_within_350m, length))
+```
+
+Import kindergartens Location data
+
+```{r}
+kindergartens = st_read(
+  "data/aspatial/Kindergartens.kml") %>%
+  st_transform(crs= 3414)
+```
+
+Counting number of kindergarten
+
+```{r}
+kindergarten_within_350m <- st_is_within_distance(
+  HDBresale_sf, kindergartens, dist = 350)
+
+HDBresale_sf <- HDBresale_sf %>%
+  mutate(kindergarten_within_350m = map_int(kindergarten_within_350m, length))
+```
+
+Import bus stop Location data
+
+```{r}
+busstop = st_read(dsn = "data/aspatial/BusStopLocation_Aug2025/",
+                  layer = "BusStop") %>%
+  st_transform(crs = 3414)
+```
+
+Counting number of busstop
+
+```{r}
+busstop_within_350m <- st_is_within_distance(
+  HDBresale_sf, busstop, dist = 350)
+
+HDBresale_sf <- HDBresale_sf %>%
+  mutate(busstop_within_350m = map_int(busstop_within_350m, length))
+```
+
+Import eldercare service Location data
+
+```{r}
+eldercare = st_read(
+  "data/aspatial/EldercareServicesKML.kml") %>%
+  st_transform(crs= 3414)
+```
+
+compute proximity to eldercare service
+
+```{r}
+HDBresale_sf <- HDBresale_sf %>%
+  mutate(
+    PROX_eldercare = as.numeric(
+      st_distance(geometry,
+                  eldercare[st_nearest_feature(
+                    geometry, eldercare), ], 
+                  by_element = TRUE)
+      )
+    )
+```
+
+Import lrt mrt Location data
+
+```{r}
+lrtmrt = st_read(
+  "data/aspatial/LTAMRTStationExitKML.kml") %>%
+  st_transform(crs= 3414)
+```
+
+compute proximity to lrt and mrt
+
+```{r}
+HDBresale_sf <- HDBresale_sf %>%
+  mutate(
+    PROX_lrtmrt = as.numeric(
+      st_distance(geometry,
+                  lrtmrt[st_nearest_feature(
+                    geometry, lrtmrt), ], 
+                  by_element = TRUE)
+      )
+    )
+```
+
+Import hawker centre Location data
+
+```{r}
+hawker = st_read(
+  "data/aspatial/HawkerCentresKML.kml") %>%
+  st_transform(crs= 3414)
+```
+
+compute proximity to hawker centre
+
+```{r}
+HDBresale_sf <- HDBresale_sf %>%
+  mutate(
+    PROX_hawker = as.numeric(
+      st_distance(geometry,
+                  hawker[st_nearest_feature(
+                    geometry, hawker), ], 
+                  by_element = TRUE)
+      )
+    )
+```
+
+Import market and food centre Location data
+
+```{r}
+marketfoodcentre = st_read(
+  "data/aspatial/NEAMarketandFoodCentreKML.kml") %>%
+  st_transform(crs= 3414)
+```
+
+compute proximity to market and food centre
+
+```{r}
+HDBresale_sf <- HDBresale_sf %>%
+  mutate(
+    PROX_marketfoodcentre = as.numeric(
+      st_distance(geometry,
+                  marketfoodcentre[st_nearest_feature(
+                    geometry, marketfoodcentre), ], 
+                  by_element = TRUE)
+      )
+    )
+```
+
+Import supermarket location data
+
+```{r}
+supermarket <- read_csv("data/aspatial/ListofSupermarketLicences.csv")
+```
+
+Geocode supermarket postal codes
+
+```{r}
+postcodes <- unique(supermarket$postal_code)
+
+url <- "https://onemap.gov.sg/api/common/elastic/search"
+
+found <- data.frame()
+not_found <- data.frame(postcode = character())
+
+for (pc in postcodes) {
+  query <- list(
+    searchVal = pc,
+    returnGeom = "Y",
+    getAddrDetails = "Y",
+    pageNum = "1"
+  )
+  
+  res <- GET(url, query = query)
+  json <- content(res)
+  
+  if (json$found != 0) {
+    df <- as.data.frame(json$results, stringsAsFactors = FALSE)
+    df$input_postcode <- pc
+    found <- bind_rows(found, df)
+  } else {
+    not_found <- bind_rows(not_found, data.frame(postcode = pc))
+  }
+}
+```
+
+Appending location information to supermarket
+
+```{r}
+supermarket = supermarket %>%
+  left_join(found, 
+            by = c('postal_code' = 'POSTAL'))
+```
+
+Convert supermarket to sf object
+
+```{r}
+supermarket_clean <- supermarket %>%
+  filter(!is.na(X) & !is.na(Y))
+
+supermarket_sf <- st_as_sf(supermarket_clean, 
+                         coords = c("X","Y"),
+                         crs=3414) 
+```
+
+Compute proximity to supermarket
+
+```{r}
+HDBresale_sf <- HDBresale_sf %>%
+  mutate(
+    PROX_supermarket = as.numeric(
+      st_distance(geometry,
+                  supermarket_sf[st_nearest_feature(geometry, supermarket_sf), ],
+                  by_element = TRUE)
+    )
+  )
+```
+
+Import park location data
+
+```{r}
+park <- st_read("data/aspatial/ParkFacilities.geojson") %>%
+  st_transform(crs = 3414) 
+```
+
+Compute proximity to park
+
+```{r}
+HDBresale_sf <- HDBresale_sf %>%
+  mutate(
+    PROX_Park = as.numeric(
+      st_distance(geometry, 
+                  park[st_nearest_feature(geometry, park), ],
+                  by_element = TRUE)
+  ))
+```
+
+Using raffles place mrt coordinates as cbd
+
+```{r}
+cbd <- st_point(c(103.851959, 1.285400)) 
+
+cbd_sf <- st_sfc(cbd, crs = 4326) %>%
+  st_transform(crs = 3414)
+```
+
+Compute proximity to cbd
+
+```{r}
+HDBresale_sf <- HDBresale_sf %>%
+  mutate(
+    PROX_CBD = as.numeric(st_distance(geometry, cbd_sf))
+  )
+```
+
+Compute age of unit
+
+```{r}
+HDBresale_sf <- HDBresale_sf %>%
+  mutate(age_of_unit = 2025 - lease_commence_date)
+```
+
+Compute remaining lease
+
+```{r}
+HDBresale_sf <- HDBresale_sf %>%
+  mutate(remaininglease = 99 - age_of_unit)
+```
+
+Changing storey to continuous value
+
+```{r}
+storey_map <- c(
+  "01 TO 03" = 1,
+  "04 TO 06" = 2,
+  "07 TO 09" = 3,
+  "10 TO 12" = 4,
+  "13 TO 15" = 5,
+  "16 TO 18" = 6,
+  "19 TO 21" = 7,
+  "22 TO 24" = 8,
+  "25 TO 27" = 9,
+  "28 TO 30" = 10,
+  "31 TO 33" = 11,
+  "34 TO 36" = 12,
+  "37 TO 39" = 13,
+  "40 TO 42" = 14,
+  "43 TO 45" = 15,
+  "46 TO 48" = 16,
+  "49 TO 51" = 17
+)
+
+HDBresale_sf <- HDBresale_sf %>%
+  mutate(floor_level = storey_map[storey_range])
+```
+
+
+
+
+
+
