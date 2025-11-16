@@ -6,8 +6,7 @@ author: "CHJ1"
 Installing Packages
 
 ```{r}
-pacman::p_load(httr, tidyverse, sf, tmap, 
-               jsonlite, progress, dplyr)
+pacman::p_load(httr, tidyverse, sf, tmap, jsonlite, progress, dplyr, olsrr, corrplot, ggpubr, sfdep, GWmodel, gtsummary, performance, RColorBrewer)
 ```
 
 Geocoding HDB Resale Data
@@ -370,6 +369,323 @@ HDBresale_sf <- HDBresale_sf %>%
   mutate(floor_level = storey_map[storey_range])
 ```
 
+Importing geospatial data
+
+```{r}
+mpsz = st_read(dsn = "data/geospatial", 
+               layer = "MP14_SUBZONE_WEB_PL")
+```
+
+Updating CRS information
+
+```{r}
+mpsz_svy21 <- st_transform(mpsz, 3414)
+```
+
+```{r}
+st_crs(mpsz_svy21)
+```
+
+```{r}
+st_bbox(mpsz_svy21)
+```
+
+Exploratory Data Analysis (EDA)
+
+```{r}
+ggplot(data=HDBresale_sf, 
+       aes(x=`resale_price`)) +
+  geom_histogram(bins=20, 
+                 color="black", 
+                 fill="light blue")
+```
+
+The figure above reveals a right skewed distribution. This means that more 5 room HDB units were transacted between 600k to 900k.
+
+Logging resale price
+
+```{r}
+HDBresale_sf <- HDBresale_sf %>%
+  mutate(`LOG_RESALE_PRICE` = log(resale_price))
+```
+
+```{r}
+ggplot(data=HDBresale_sf, 
+       aes(x=`LOG_RESALE_PRICE`)) +
+  geom_histogram(bins=20, 
+                 color="black", 
+                 fill="light blue")
+```
+
+Multiple Histogram Plots distribution of variables
+
+```{r}
+colnames(HDBresale_sf)
+```
+
+```{r}
+floor_area_sqm <- ggplot(data=HDBresale_sf, 
+                               aes(x= `floor_area_sqm`)) +
+  geom_histogram(bins=20, 
+                 color="black", 
+                 fill="light blue")
+
+prischool_within_1000m <- ggplot(data=HDBresale_sf, 
+                               aes(x= `prischool_within_1000m`)) +
+  geom_histogram(bins=20, 
+                 color="black", 
+                 fill="light blue")
+
+childcare_within_350m <- ggplot(data=HDBresale_sf, 
+                               aes(x= `childcare_within_350m`)) +
+  geom_histogram(bins=20, 
+                 color="black", 
+                 fill="light blue")
+
+kindergarten_within_350m <- ggplot(data=HDBresale_sf, 
+                               aes(x= `kindergarten_within_350m`)) +
+  geom_histogram(bins=20, 
+                 color="black", 
+                 fill="light blue")
+
+busstop_within_350m <- ggplot(data=HDBresale_sf, 
+                               aes(x= `busstop_within_350m`)) +
+  geom_histogram(bins=20, 
+                 color="black", 
+                 fill="light blue")
+
+PROX_eldercare <- ggplot(data=HDBresale_sf, 
+                               aes(x= `PROX_eldercare`)) +
+  geom_histogram(bins=20, 
+                 color="black", 
+                 fill="light blue")
+
+PROX_lrtmrt <- ggplot(data=HDBresale_sf, 
+                               aes(x= `PROX_lrtmrt`)) +
+  geom_histogram(bins=20, 
+                 color="black", 
+                 fill="light blue")
+
+PROX_hawker <- ggplot(data=HDBresale_sf, 
+                               aes(x= `PROX_hawker`)) +
+  geom_histogram(bins=20, 
+                 color="black", 
+                 fill="light blue")
+
+PROX_marketfoodcentre <- ggplot(data=HDBresale_sf, 
+                               aes(x= `PROX_marketfoodcentre`)) +
+  geom_histogram(bins=20, 
+                 color="black", 
+                 fill="light blue")
+
+PROX_supermarket <- ggplot(data=HDBresale_sf, 
+                               aes(x= `PROX_supermarket`)) +
+  geom_histogram(bins=20, 
+                 color="black", 
+                 fill="light blue")
+
+PROX_Park <- ggplot(data=HDBresale_sf, 
+                               aes(x= `PROX_Park`)) +
+  geom_histogram(bins=20, 
+                 color="black", 
+                 fill="light blue")
+
+PROX_CBD <- ggplot(data=HDBresale_sf, 
+                               aes(x= `PROX_CBD`)) +
+  geom_histogram(bins=20, 
+                 color="black", 
+                 fill="light blue")
+
+age_of_unit <- ggplot(data=HDBresale_sf, 
+                               aes(x= `age_of_unit`)) +
+  geom_histogram(bins=20, 
+                 color="black", 
+                 fill="light blue")
+
+remaininglease <- ggplot(data=HDBresale_sf, 
+                               aes(x= `remaininglease`)) +
+  geom_histogram(bins=20, 
+                 color="black", 
+                 fill="light blue")
+
+floor_level <- ggplot(data=HDBresale_sf, 
+                               aes(x= `floor_level`)) +
+  geom_histogram(bins=20, 
+                 color="black", 
+                 fill="light blue")
+
+ggarrange(floor_area_sqm, prischool_within_1000m, childcare_within_350m, kindergarten_within_350m, busstop_within_350m, PROX_eldercare, PROX_lrtmrt, PROX_hawker, PROX_marketfoodcentre, PROX_supermarket, PROX_Park, PROX_CBD, age_of_unit, remaininglease, floor_level, ncol = 3, nrow = 5)
+```
+
+Geospatial distribution of 5 room HDB resale prices in Singapore
+
+```{r}
+tmap_mode("view")
+
+tm_shape(mpsz_svy21)+
+  tm_polygons() +
+tm_shape(HDBresale_sf) +  
+  tm_dots(fill = "resale_price",
+          fill_alpha = 0.6,
+          size = 0.5,
+          fill.scale = tm_scale_intervals(
+            style="quantile")) +
+  tm_view(set_zoom_limits = c(11,14))
+  
+tmap_mode("plot")
+```
+
+Multiple Linear Regression Method
+
+Visualising the relationships of the independent variables using correlation matrix
+
+```{r}
+cols_to_use <- c(
+  "floor_area_sqm", "prischool_within_1000m", "childcare_within_350m", "kindergarten_within_350m", 
+  "busstop_within_350m", "PROX_eldercare", "PROX_lrtmrt", "PROX_hawker", "PROX_marketfoodcentre",
+  "PROX_supermarket", "PROX_Park", "PROX_CBD", "age_of_unit", "remaininglease", "floor_level"
+)
+
+selected_data <- HDBresale_sf[, cols_to_use]
+
+selected_data_numeric <- as.data.frame(
+  lapply(selected_data, function(x) as.numeric(as.character(x)))
+)
+
+corrplot(cor(selected_data_numeric[, 1:15]), 
+         diag = FALSE, 
+         order = "AOE",
+         tl.pos = "td", 
+         tl.cex = 0.5, 
+         method = "number", 
+         type = "upper")
+```
+
+remaininglease is highly correlated to age_of_unit. Thus, exclude remaininglease from the model.
+
+Building a hedonic pricing model using multiple linear regression method
+
+```{r}
+five_rm_mlr <- lm(
+  formula = resale_price ~ floor_area_sqm + prischool_within_1000m + childcare_within_350m + kindergarten_within_350m + busstop_within_350m + PROX_eldercare + PROX_lrtmrt + PROX_hawker + PROX_marketfoodcentre + PROX_supermarket + PROX_Park + PROX_CBD + age_of_unit + floor_level,
+  data=HDBresale_sf)
+summary(five_rm_mlr)
+```
+
+Remove independent variables that are not statistically significant.
+
+```{r}
+five_rm_mlr <- lm(
+  formula = resale_price ~ floor_area_sqm + prischool_within_1000m + kindergarten_within_350m + busstop_within_350m + PROX_lrtmrt + PROX_hawker + PROX_marketfoodcentre + PROX_supermarket + PROX_Park + PROX_CBD + age_of_unit + floor_level,
+  data=HDBresale_sf)
+summary(five_rm_mlr)
+```
+
+The output above reveals that all explanatory variables are statistically significant at 95% confident level.
+
+Create formatted regression report
+
+```{r}
+tbl_regression(five_rm_mlr, intercept = TRUE)
+```
+
+Multicollinearity test
+
+```{r}
+check_collinearity(five_rm_mlr)
+```
+
+Test for Non-Linearity
+
+```{r}
+check_model(five_rm_mlr,
+            check = "linearity")
+```
+
+The green line is not flat and horizontal; instead, it shows a curved pattern.
+
+This indicates the presence of non-linearity in the data: the relationship between one or more variables and the outcome is not fully captured by a linear model.
+
+The linearity assumption of the multiple linear regression model is violated. Predictions will be biased for high and low fitted values.
+
+Test for Normality Assumption
+
+```{r}
+check_normality(five_rm_mlr)
+```
+
+The p-value of the normality assumption test is less than alpha value of 0.05. Hence, we reject the normality assumption at 95% confident level.
+
+```{r}
+plot(check_normality(five_rm_mlr), 
+     type = "qq")
+```
+
+Q-Q plot above shows that majority of the data points are along the zero line.
+
+Testing for Spatial Autocorrelation
+
+```{r}
+mlr.output <- as.data.frame(five_rm_mlr$residuals)
+```
+
+```{r}
+HDBresale_sf <- cbind(HDBresale_sf, 
+                        five_rm_mlr$residuals) %>%
+rename(`MLR_RES` = `five_rm_mlr.residuals`)
+```
+
+```{r}
+tmap_mode("view")
+
+tm_shape(mpsz_svy21) +
+  tm_polygons(fill_alpha = 0.4) +
+tm_shape(HDBresale_sf) +  
+  tm_dots(
+    fill = "MLR_RES",
+    size = 0.7,
+    col = "black",
+    fill.scale = tm_scale(
+      n = 10,
+      values = rev(
+        brewer.pal(11, "RdBu")),
+      style = "quantile",
+      midpoint = NA),
+    fill.legend = tm_legend(title = "Residuals")
+  ) + 
+  tm_title("LM Residuals (Quantile Classification)") +
+  tm_layout(legend.outside = TRUE) +
+  tm_view(set_zoom_limits = c(11,14))
+
+tmap_mode("plot")
+```
+
+The plot reveals that there is sign of spatial autocorrelation. To proof that our observation is true, Global Moran's I test will be performed.
+
+```{r}
+HDBresale_sf <- HDBresale_sf %>% 
+  mutate(
+    nb = st_dist_band(
+      st_geometry(geometry), 
+                 upper = 1500),
+    wt = st_weights(
+      nb, style = "W"),
+    .before = 1) 
+```
+
+```{r}
+set.seed(1234)
+global_moran_perm(
+  HDBresale_sf$MLR_RES, 
+  nb = HDBresale_sf$nb, 
+  wt = HDBresale_sf$wt,
+  alternative = "two.sided", 
+  nsim = 499)
+```
+
+The Global Moran’s I test for residual spatial autocorrelation shows that it’s p-value is less than the alpha value of 0.05. Hence, we will reject the null hypothesis that the residuals are randomly distributed.
+
+Since the Observed Global Moran I = 0.3354 which is greater than 0, we can infer than the residuals resemble cluster distribution.
 
 
 
