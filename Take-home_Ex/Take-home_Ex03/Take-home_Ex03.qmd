@@ -535,6 +535,8 @@ tm_shape(HDBresale_sf) +
 tmap_mode("plot")
 ```
 
+The above reveals that higher-priced transactions (darker blues) are concentrated in central and southern parts of Singapore, likely reflecting better accessibility and amenities, while lower-priced transactions (lighter blues) tend to occur in northern and western areas, highlighting how property value varies significantly by location and underscoring the spatial impact on resale pricing.
+
 Multiple Linear Regression Method
 
 Visualising the relationships of the independent variables using correlation matrix
@@ -588,6 +590,47 @@ Create formatted regression report
 ```{r}
 tbl_regression(five_rm_mlr, intercept = TRUE)
 ```
+
+Creating scatter plots with trendline for each statistically significant variable against resale price
+
+```{r}
+variables <- c(
+  "floor_area_sqm",
+  "prischool_within_1000m",
+  "kindergarten_within_350m",
+  "busstop_within_350m",
+  "PROX_lrtmrt",
+  "PROX_hawker",
+  "PROX_marketfoodcentre",
+  "PROX_supermarket",
+  "PROX_Park",
+  "PROX_CBD",
+  "age_of_unit",
+  "floor_level"
+)
+
+for (v in variables) {
+  p <- ggplot(HDBresale_sf, aes_string(x = v, y = "resale_price")) +
+    geom_point(alpha = 0.4, color = "blue") +
+    geom_smooth(method = "lm", se = FALSE, color = "red", linewidth = 1) +
+    labs(title = paste("Scatter plot of", v, "vs resale_price"))
+  
+  print(p)
+}
+```
+
+Based on the scatterplots with trendlines for each variable against resale price, only variables whose trendlines are noticeably steeper are highlighted, as these demonstrate a stronger relationship with resale price and indicate that changes in these variables have a more substantial impact on resale values compared to predictors with flatter or negligible slopes.
+
+1. prischool_within_1000m increases, resale price decreases
+2. PROX_hawker increases, resale price decreases
+3. PROX_marketfoodcentre increases, resale price decreases
+4. PROX_CBD increases, resale price decreases
+5. age_of_unit increases, resale price decreases
+6. floor_level increases, resale price increases
+
+There is stronger demand for 5 room HDB units that offer convenience by being located nearer to food places, closer to the CBD (workplaces), as well as for newer units and those on higher floors. This preference arises because proximity to essential amenities and workplaces reduces travel time and daily hassle, newer units typically offer better conditions and longer lease terms, and higher floors often provide better views, privacy, and less noise, all of which enhance the living experience and attract buyers willing to pay a premium.
+
+There is lower demand for units near primary schools, possibly due to noise from school activities, making these locations less desirable.
 
 Multicollinearity test
 
@@ -687,7 +730,79 @@ The Global Moranâ€™s I test for residual spatial autocorrelation shows that itâ€
 
 Since the Observed Global Moran I = 0.3354 which is greater than 0, we can infer than the residuals resemble cluster distribution.
 
+Building Adaptive Bandwidth GWR Model
 
+Computing the adaptive bandwidth
+
+```{r}
+bw.adaptive <- bw.gwr(
+  formula = resale_price ~ floor_area_sqm + prischool_within_1000m + kindergarten_within_350m + busstop_within_350m + PROX_lrtmrt + PROX_hawker + PROX_marketfoodcentre + PROX_supermarket + PROX_Park + PROX_CBD + age_of_unit + floor_level,
+  data=HDBresale_sf, 
+  approach="CV", 
+  kernel="gaussian", 
+  adaptive=TRUE, 
+  longlat=FALSE)
+```
+
+The result shows that 36 is the recommended data points to be used.
+
+Constructing the adaptive bandwidth gwr model
+
+```{r}
+gwr.adaptive <- gwr.basic(
+  formula = resale_price ~ floor_area_sqm + prischool_within_1000m + kindergarten_within_350m + busstop_within_350m + PROX_lrtmrt + PROX_hawker + PROX_marketfoodcentre + PROX_supermarket + PROX_Park + PROX_CBD + age_of_unit + floor_level,
+  data=HDBresale_sf, 
+  bw=bw.adaptive, 
+  kernel = 'gaussian', 
+  adaptive=TRUE, 
+  longlat = FALSE)
+```
+
+```{r}
+gwr.adaptive
+```
+
+The report shows that the AICc of the adaptive distance gwr is 111469.9 
+
+Visualising GWR Output
+
+Converting SDF into sf data.frame
+
+```{r}
+HDBresale_sf.adaptive <-
+  st_as_sf(gwr.adaptive$SDF) %>%
+  st_transform(crs=3414)
+```
+
+```{r}
+glimpse(HDBresale_sf.adaptive)
+```
+
+```{r}
+summary(gwr.adaptive$SDF$yhat)
+```
+
+Visualising local R2
+
+```{r}
+tmap_mode("view")
+
+tm_shape(mpsz_svy21)+
+  tm_polygons(fill_alpha = 0.1) +
+tm_shape(HDBresale_sf.adaptive) +  
+  tm_dots(col = "Local_R2",
+          border.col = "gray60",
+          border.lwd = 1) +
+  tm_view(set.zoom.limits = c(11,14))
+
+tmap_mode("plot")
+```
+
+Conclusion
+
+The analysis shows that key statistically significant factors influencing 5-room HDB resale prices include floor area, accessibility to preschools and kindergartens, proximity to bus stops, LRT/MRT stations, hawker centres, market food centres, supermarkets, parks, and the CBD, as well as the age of the unit and floor level. Scatterplots with trendlines reveal that variables such as proximity to hawker centres, market food centres, and the CBD, newer units, and higher floor levels have stronger positive impacts on resale price, demonstrating higher demand for convenience, better living conditions, and views. 
+
+Conversely, increased proximity to primary schools correlates with lower resale prices, likely due to noise concerns. Overall, buyers value units that offer accessibility to amenities and workplaces, newer units for better condition and longer lease, and higher floors for enhanced privacy and noise reduction, driving premiums in these areas.
 
 
 
